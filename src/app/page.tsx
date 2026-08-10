@@ -1,4 +1,5 @@
-import { CursorAura } from "@/components/CursorAura";
+
+import { NeonTubeCursor } from "@/components/NeonTubeCursor";
 import { Loader } from "@/components/Loader";
 import { Header } from "@/components/layout/Header";
 import { Hero } from "@/components/hero/Hero";
@@ -11,7 +12,7 @@ export default function Home() {
   return (
     <main className="relative">
       <Loader />
-      <CursorAura />
+      <NeonTubeCursor />
       <Header />
       <Hero />
       <Works />

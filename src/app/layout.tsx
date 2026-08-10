@@ -12,10 +12,16 @@ const interTight = Inter_Tight({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Viraj Patil — Personal R&D Portfolio",
+export const metadata = {
+  title: "Viraj Patil — AI, Cybersecurity & Full-Stack Systems",
   description:
-    "Portfolio of Viraj Patil — AI, cybersecurity, computer vision, full-stack systems, and experimental software.",
+    "Portfolio of Viraj Patil — building projects across AI, cybersecurity, computer vision, and full-stack engineering.",
+  openGraph: {
+    title: "Viraj Patil — Portfolio",
+    description:
+      "AI, cybersecurity, computer vision, and full-stack engineering projects.",
+    type: "website",
+  },
 };
 
 export default function RootLayout({

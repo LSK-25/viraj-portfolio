@@ -2,7 +2,9 @@
 
 import { motion, useScroll, useTransform } from "motion/react";
 import { AgentCard } from "./AgentCard";
+import { ReactiveHeadline } from "./ReactiveHeadline";
 import { identity } from "@/data/site";
+
 
 export function Hero() {
   const { scrollYProgress } = useScroll();
@@ -16,6 +18,10 @@ export function Hero() {
 
   return (
     <section className="relative z-10 min-h-screen overflow-hidden px-5 pb-10 pt-36 md:px-8 md:pt-36">
+      <div className="pointer-events-none absolute inset-0 z-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.075)_1px,transparent_1px),linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:72px_72px] opacity-60 [mask-image:radial-gradient(circle_at_50%_45%,black,transparent_74%)]" />
+
+      <div className="pointer-events-none absolute left-[10vw] top-[16vh] h-[44vh] w-[42vw] rounded-full bg-[radial-gradient(circle_at_center,rgba(150,24,42,0.24),rgba(118,58,190,0.13)_38%,transparent_72%)] blur-3xl" />
+
       <div className="mx-auto grid min-h-[72vh] max-w-[1500px] gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
         <motion.div
           style={{ y: textY, opacity: textOpacity }}
@@ -25,15 +31,7 @@ export function Hero() {
             {identity.role}
           </p>
 
-          <h1 className="font-display max-w-[820px] text-[clamp(3.7rem,7.7vw,8.5rem)] font-semibold uppercase leading-[0.8] tracking-[-0.095em]">
-            I build
-            <br />
-            systems that
-            <br />
-            see, think
-            <br />
-            and interact.
-          </h1>
+          <ReactiveHeadline />
         </motion.div>
 
         <motion.div
@@ -44,15 +42,7 @@ export function Hero() {
         </motion.div>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 2.8, duration: 0.7 }}
-        className="absolute bottom-8 left-5 right-5 z-20 mx-auto flex max-w-[1500px] justify-between text-[10px] uppercase tracking-[0.34em] text-white/32 md:left-8 md:right-8"
-      >
-        <span>Works below</span>
-        <span>Scroll</span>
-      </motion.div>
+     
     </section>
   );
 }

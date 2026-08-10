@@ -63,3 +63,25 @@ export const personalSignals = [
   "Games",
   "Leon Kennedy",
 ];
+export const socialLinks = [
+  {
+    label: "GitHub",
+    href: "https://github.com/LSK-25",
+  },
+  {
+    label: "LinkedIn",
+    href: "https://www.linkedin.com/in/viraj-patil-2524vp04",
+  },
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/_viraj2504",
+  },
+  {
+    label: "Resume",
+    href: "/Viraj_Patil_Resume.pdf",
+  },
+  {
+    label: "Email",
+    href: "mailto:vir252004@gmail.com",
+  },
+];

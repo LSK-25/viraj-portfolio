@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #060605;
-  --foreground: #f4efe6;
+  --background: #030102;
+  --foreground: #f4eee8;
   --muted: #aaa093;
   --dim: rgba(244, 239, 230, 0.48);
   --line: rgba(244, 239, 230, 0.13);
@@ -11,6 +11,10 @@
   --agent-red: #7a1919;
   --brass: #c7af86;
   --shadow: rgba(0, 0, 0, 0.55);
+  --blood-red: 128, 18, 31;
+  --deep-red: 70, 8, 14;
+  --violet: 92, 44, 150;
+  --purple: 132, 58, 190;
 }
 
 @theme inline {
@@ -86,4 +90,39 @@ button {
 
 .text-balance {
   text-wrap: balance;
+}
+body {
+  background:
+    radial-gradient(circle at 78% 18%, rgba(var(--blood-red), 0.26), transparent 34%),
+    radial-gradient(circle at 18% 72%, rgba(var(--violet), 0.18), transparent 38%),
+    radial-gradient(circle at 52% 95%, rgba(var(--deep-red), 0.22), transparent 42%),
+    #030102;
+  color: var(--foreground);
+  overflow-x: hidden;
+}
+
+body::before {
+  content: "";
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  background:
+    radial-gradient(circle at 72% 35%, rgba(var(--blood-red), 0.10), transparent 34%),
+    radial-gradient(circle at 25% 45%, rgba(var(--purple), 0.08), transparent 38%);
+  mix-blend-mode: screen;
+}
+
+body::after {
+  content: "";
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  background:
+    linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.016) 1px, transparent 1px);
+  background-size: 72px 72px;
+  opacity: 0.5;
+  mask-image: radial-gradient(circle at 50% 45%, black, transparent 78%);
 }

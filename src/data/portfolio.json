@@ -1,0 +1,144 @@
+{
+  "name": "Viraj Patil",
+  "fullName": "Viraj Rajesh Patil",
+  "role": "AI, software engineering & thoughtful digital experiences",
+  "intro": "I build systems that see, think, and interact. From intelligent prototypes to considered storefronts, I turn curiosity into useful software.",
+  "location": "Amravati, India",
+  "education": "B.Tech in Electronics & Telecommunication, PRMITR, Badnera-Amravati (2023–2027)",
+  "email": "vir252004@gmail.com",
+  "website": "https://viraj-portfolio-mu.vercel.app/",
+  "skills": [
+    "Python",
+    "TypeScript",
+    "JavaScript",
+    "React",
+    "Next.js",
+    "Tailwind CSS",
+    "Supabase",
+    "Flask",
+    "OpenCV",
+    "YOLO",
+    "SQL",
+    "Git"
+  ],
+  "resources": [
+    {
+      "id": "resume",
+      "label": "Download CV",
+      "href": "/Viraj_Patil_Resume.pdf",
+      "kind": "pdf"
+    },
+    {
+      "id": "portfolio",
+      "label": "Portfolio PDF",
+      "href": "/Viraj_Patil_Portfolio.pdf",
+      "kind": "pdf"
+    },
+    {
+      "id": "linkedin",
+      "label": "LinkedIn",
+      "href": "https://www.linkedin.com/in/viraj-patil-2524vp04",
+      "kind": "external"
+    },
+    {
+      "id": "github",
+      "label": "GitHub",
+      "href": "https://github.com/LSK-25",
+      "kind": "external"
+    },
+    {
+      "id": "email",
+      "label": "Email Viraj",
+      "href": "mailto:vir252004@gmail.com",
+      "kind": "email"
+    },
+    {
+      "id": "instagram",
+      "label": "Instagram",
+      "href": "https://www.instagram.com/_viraj2504",
+      "kind": "external"
+    }
+  ],
+  "projects": [
+    {
+      "id": "nova",
+      "number": "01",
+      "title": "NOVA / ADA",
+      "subtitle": "A more personal way to interact with software.",
+      "category": "Voice AI · Prototype",
+      "status": "Local prototype",
+      "href": "https://github.com/LSK-25/ADA-v2",
+      "stack": [
+        "Python",
+        "Ollama",
+        "Whisper",
+        "Native desktop UI"
+      ],
+      "description": "A private desktop voice companion exploring natural conversation, reminders, and explicit desktop actions.",
+      "challenge": "Bring speech, local inference, and useful desktop actions together on a personal laptop.",
+      "implementation": "The current ADA 0.4.3 application combines local conversation and speech with a native desktop interface, reminders, Chrome-profile selection, bounded browser actions, Spotify commands, and opt-in screen context.",
+      "outcome": "A working local prototype with a GitHub application/update layer. Future exploration includes an ESP32 desk companion and richer personal context.",
+      "boundary": "Hardware embodiment is planned. Not every Windows action or voice command is confirmed on every device. The GitHub update layer is not a complete clean-machine installer. The portfolio assistant is a separate online English assistant."
+    },
+    {
+      "id": "billi-boba",
+      "number": "02",
+      "title": "BILLi&BoBA",
+      "subtitle": "A little personality. A lot of product detail.",
+      "category": "E-commerce · Client project",
+      "status": "Live website",
+      "href": "https://billi-boba-nails.vercel.app/",
+      "stack": [
+        "Next.js",
+        "TypeScript",
+        "Tailwind CSS",
+        "Supabase"
+      ],
+      "description": "A mobile-first storefront for custom press-on nails, designed around browsing, sizing, and a clear purchase journey.",
+      "challenge": "Make a visual, detail-heavy product easy to explore and order on a phone.",
+      "implementation": "Built product filtering, set details, cart and checkout journeys, photo-sizing guidance, order tracking, and customer/admin flows. Added Supabase-backed media management and rotating photo/video previews.",
+      "outcome": "A deployed Vercel storefront with responsive product UX and an owner-managed media workflow.",
+      "boundary": "Do not invent current stock, order volume, payment providers, customers, or commercial results. Live catalog content may change."
+    },
+    {
+      "id": "sadafuli",
+      "number": "03",
+      "title": "Sadafuli by Isha",
+      "subtitle": "A considered home for modern Indian craft.",
+      "category": "E-commerce · Client project",
+      "status": "Live website",
+      "href": "https://sadafuli.vercel.app/",
+      "stack": [
+        "Next.js",
+        "TypeScript",
+        "Tailwind CSS",
+        "Supabase"
+      ],
+      "description": "A premium saree storefront pairing editorial product discovery with a WhatsApp-first purchase journey.",
+      "challenge": "Create a distinctive shopping experience for a saree brand while making products and collections manageable for the owner.",
+      "implementation": "Built responsive collection and product pages, cart and wishlist flows, and protected admin management for products, images, and collections. Supabase provides authentication, storage, and row-level access rules.",
+      "outcome": "Deployed on Vercel with a publication workflow and WhatsApp-first checkout. The store keeps brand presentation and catalog administration in one system.",
+      "boundary": "Checkout is through WhatsApp. Do not claim integrated online payments, sales figures, customer counts, or conversion improvements."
+    },
+    {
+      "id": "sentinel",
+      "number": "04",
+      "title": "Sentinel",
+      "subtitle": "Turning a live feed into useful signals.",
+      "category": "Computer vision · Prototype",
+      "status": "Working prototype",
+      "href": "",
+      "stack": [
+        "Python",
+        "OpenCV",
+        "YOLO",
+        "Flask"
+      ],
+      "description": "A local surveillance prototype combining person detection, motion analysis, and an intrusion-monitoring dashboard.",
+      "challenge": "Connect live detection to understandable alerts without flickering states and duplicate triggers.",
+      "implementation": "Built a webcam pipeline with confidence-scored YOLO person detection, OpenCV motion analysis, alert-hold and stability logic, timestamped evidence snapshots, and a Flask dashboard.",
+      "outcome": "Validated the capture-to-dashboard workflow locally, including monitoring status and intrusion evidence.",
+      "boundary": "A prototype, not a certified security product. No measured accuracy, latency, or field-deployment claims are available."
+    }
+  ]
+}

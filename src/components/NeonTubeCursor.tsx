@@ -1,173 +1,91 @@
-"use client";
+'use client';
 
-import { useEffect, useRef } from "react";
+import {useEffect, useRef} from 'react';
 
-type Point = {
-  x: number;
-  y: number;
-  age: number;
-};
+type Point = {x: number; y: number; born: number};
 
 export function NeonTubeCursor() {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const pointsRef = useRef<Point[]>([]);
-  const rafRef = useRef<number | null>(null);
-
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
-    const targetCanvas = canvasRef.current;
-    if (!targetCanvas) return;
+    const canvas = canvasRef.current;
+    const context = canvas?.getContext('2d');
+    if (!canvas || !context) return;
+    const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const fine = window.matchMedia('(hover: hover) and (pointer: fine)');
+    let points: Point[] = [];
+    let frame = 0;
+    let width = 0;
+    let height = 0;
 
-    const ctx = targetCanvas.getContext("2d");
-    if (!ctx) return;
-
-    const canvas = targetCanvas;
-    const context = ctx;
-
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-
-    if (prefersReducedMotion) return;
-
-    let width = window.innerWidth;
-    let height = window.innerHeight;
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-
+    function clear() {
+      cancelAnimationFrame(frame);
+      frame = 0;
+      points = [];
+      context!.clearRect(0, 0, width, height);
+    }
     function resize() {
+      clear();
       width = window.innerWidth;
       height = window.innerHeight;
-
-      canvas.width = width * dpr;
-      canvas.height = height * dpr;
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
-
-      context.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      canvas!.width = width * dpr;
+      canvas!.height = height * dpr;
+      context!.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
-
-    function onPointerMove(event: PointerEvent) {
-      pointsRef.current.push({
-        x: event.clientX,
-        y: event.clientY,
-        age: 0,
-      });
-
-      if (pointsRef.current.length > 42) {
-        pointsRef.current.shift();
-      }
-    }
-
-    function drawTube(
-      points: Point[],
-      color: string,
-      lineWidth: number,
-      blur: number,
-      offsetX = 0,
-      offsetY = 0,
-      alpha = 1,
-    ) {
+    function tube(color: string, lineWidth: number, blur: number, offset = 0) {
       if (points.length < 3) return;
-
-      context.save();
-      context.globalAlpha = alpha;
-      context.strokeStyle = color;
-      context.lineWidth = lineWidth;
-      context.lineCap = "round";
-      context.lineJoin = "round";
-      context.shadowColor = color;
-      context.shadowBlur = blur;
-
-      context.beginPath();
-      context.moveTo(points[0].x + offsetX, points[0].y + offsetY);
-
-      for (let i = 1; i < points.length - 2; i++) {
+      context!.strokeStyle = color;
+      context!.shadowColor = color;
+      context!.shadowBlur = blur;
+      context!.lineWidth = lineWidth;
+      context!.lineCap = 'round';
+      context!.lineJoin = 'round';
+      context!.beginPath();
+      context!.moveTo(points[0].x, points[0].y + offset);
+      for (let i = 1; i < points.length - 1; i++) {
         const current = points[i];
         const next = points[i + 1];
-
-        const midX = (current.x + next.x) / 2 + offsetX;
-        const midY = (current.y + next.y) / 2 + offsetY;
-
-        context.quadraticCurveTo(
-          current.x + offsetX,
-          current.y + offsetY,
-          midX,
-          midY,
-        );
+        context!.quadraticCurveTo(current.x, current.y + offset, (current.x + next.x) / 2, (current.y + next.y) / 2 + offset);
       }
-
-      context.stroke();
-      context.restore();
+      context!.stroke();
     }
-
-    function animate() {
-      context.clearRect(0, 0, width, height);
-
-      pointsRef.current = pointsRef.current
-        .map((point) => ({
-          ...point,
-          age: point.age + 0.018,
-        }))
-        .filter((point) => point.age < 1);
-
-      const points = pointsRef.current;
-
-      if (points.length > 2) {
-        context.globalCompositeOperation = "lighter";
-
-        drawTube(points, "rgba(126, 72, 255, 0.24)", 34, 42, 0, 0, 0.7);
-        drawTube(points, "rgba(75, 112, 255, 0.55)", 9, 26, 0, -3, 0.85);
-        drawTube(points, "rgba(255, 38, 116, 0.55)", 8, 24, 0, 4, 0.85);
-        drawTube(points, "rgba(238, 214, 255, 0.88)", 2, 12, 0, 0, 0.75);
-
-        const head = points[points.length - 1];
-
-        const gradient = context.createRadialGradient(
-          head.x,
-          head.y,
-          0,
-          head.x,
-          head.y,
-          70,
-        );
-
-        gradient.addColorStop(0, "rgba(255,255,255,0.42)");
-        gradient.addColorStop(0.24, "rgba(152,78,255,0.30)");
-        gradient.addColorStop(0.48, "rgba(255,38,116,0.20)");
-        gradient.addColorStop(1, "rgba(255,38,116,0)");
-
-        context.fillStyle = gradient;
-        context.beginPath();
-        context.arc(head.x, head.y, 70, 0, Math.PI * 2);
-        context.fill();
-
-        context.globalCompositeOperation = "source-over";
-      }
-
-      rafRef.current = requestAnimationFrame(animate);
+    function draw(now: number) {
+      frame = 0;
+      context!.clearRect(0, 0, width, height);
+      points = points.filter(point => now - point.born < 650);
+      if (!points.length) return;
+      context!.save();
+      context!.globalCompositeOperation = 'lighter';
+      context!.globalAlpha = Math.min(1, (650 - (now - points[points.length - 1].born)) / 240);
+      tube('rgba(142,41,67,.24)', 25, 28);
+      tube('rgba(170,66,100,.65)', 6, 18, 2);
+      tube('rgba(220,163,185,.72)', 3, 12, -2);
+      tube('rgba(250,230,238,.9)', 1, 6);
+      context!.restore();
+      frame = requestAnimationFrame(draw);
     }
-
+    function move(event: PointerEvent) {
+      if (event.pointerType !== 'mouse' || motion.matches || !fine.matches || document.hidden) return;
+      points.push({x: event.clientX, y: event.clientY, born: performance.now()});
+      if (points.length > 42) points.shift();
+      if (!frame) frame = requestAnimationFrame(draw);
+    }
     resize();
-
-    window.addEventListener("resize", resize);
-    window.addEventListener("pointermove", onPointerMove);
-
-    rafRef.current = requestAnimationFrame(animate);
-
+    window.addEventListener('pointermove', move, {passive: true});
+    window.addEventListener('resize', resize);
+    window.addEventListener('blur', clear);
+    document.addEventListener('visibilitychange', clear);
+    motion.addEventListener('change', clear);
+    fine.addEventListener('change', clear);
     return () => {
-      window.removeEventListener("resize", resize);
-      window.removeEventListener("pointermove", onPointerMove);
-
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-      }
+      clear();
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('resize', resize);
+      window.removeEventListener('blur', clear);
+      document.removeEventListener('visibilitychange', clear);
+      motion.removeEventListener('change', clear);
+      fine.removeEventListener('change', clear);
     };
   }, []);
-
-  return (
-    <canvas
-      ref={canvasRef}
-      className="pointer-events-none fixed inset-0 z-[60] hidden mix-blend-screen md:block"
-      aria-hidden="true"
-    />
-  );
+  return <canvas ref={canvasRef} className="neon-cursor" aria-hidden="true" />;
 }

@@ -1,98 +1,28 @@
-"use client";
+'use client';
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {useCallback, useEffect, useRef, useState} from 'react';
 
-type ScrambleTextProps = {
-  text: string;
-  className?: string;
-  playOnMount?: boolean;
-  delay?: number;
-};
-
-const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/\\_-+=<>";
-
-export function ScrambleText({
-  text,
-  className = "",
-  playOnMount = false,
-  delay = 0,
-}: ScrambleTextProps) {
-  const [displayText, setDisplayText] = useState(text);
-  const rafRef = useRef<number | null>(null);
-
+const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/_-+';
+export function ScrambleText({text, className = '', playOnMount = false, delay = 0}: {text: string; className?: string; playOnMount?: boolean; delay?: number}) {
+  const [display, setDisplay] = useState(text);
+  const frame = useRef(0);
   const scramble = useCallback(() => {
-    if (rafRef.current) {
-      cancelAnimationFrame(rafRef.current);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    cancelAnimationFrame(frame.current);
+    const started = performance.now();
+    function animate(now: number) {
+      const progress = Math.min(1, (now - started) / 650);
+      setDisplay(text.split('').map((char, index) => char === ' ' || index < progress * (text.length + 3) - 3 ? char : characters[Math.floor(Math.random() * characters.length)]).join(''));
+      if (progress < 1) frame.current = requestAnimationFrame(animate);
+      else setDisplay(text);
     }
-
-    let frame = 0;
-    const revealSpeed = 1.65;
-    const holdFrames = 8;
-    const totalFrames = text.length * revealSpeed + holdFrames;
-
-    function animate() {
-      frame += 1;
-
-      const output = text
-        .split("")
-        .map((char, index) => {
-          if (char === " ") return " ";
-
-          const shouldReveal = frame > index * revealSpeed + holdFrames;
-
-          if (shouldReveal) {
-            return char;
-          }
-
-          return letters[Math.floor(Math.random() * letters.length)];
-        })
-        .join("");
-
-      setDisplayText(output);
-
-      if (frame < totalFrames) {
-        rafRef.current = requestAnimationFrame(animate);
-      } else {
-        setDisplayText(text);
-      }
-    }
-
-    rafRef.current = requestAnimationFrame(animate);
+    frame.current = requestAnimationFrame(animate);
   }, [text]);
-
   useEffect(() => {
-    if (!playOnMount) return;
-
-    const timer = setTimeout(() => {
-      scramble();
-    }, delay);
-
-    return () => {
-      clearTimeout(timer);
-
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-      }
-    };
+    const timer = playOnMount ? setTimeout(scramble, delay) : undefined;
+    return () => {clearTimeout(timer); cancelAnimationFrame(frame.current);};
   }, [playOnMount, delay, scramble]);
-
-  useEffect(() => {
-    return () => {
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-      }
-    };
-  }, []);
-
-  return (
-    <span
-      onPointerEnter={scramble}
-      onFocus={scramble}
-      className={`inline-block whitespace-nowrap ${className}`}
-      style={{ minWidth: `${Math.max(text.length, 1)}ch` }}
-      aria-label={text}
-    >
-      {displayText}
-    </span>
-  );
+  return <span className={'scramble-text ' + className} onPointerEnter={event => {if (event.pointerType === 'mouse') scramble();}}>
+    <span className="sr-only">{text}</span><span className="scramble-source" aria-hidden="true">{text}</span><span className="scramble-display" aria-hidden="true">{display}</span>
+  </span>;
 }

@@ -1,18 +1,24 @@
 import type { Metadata } from "next";
-import { Inter, Inter_Tight } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
+import "./cinema.css";
 
-const inter = Inter({
+const inter = localFont({
+  src: "./fonts/inter-latin.woff2",
+  weight: "100 900",
+  display: "swap",
   variable: "--font-inter",
-  subsets: ["latin"],
 });
 
-const interTight = Inter_Tight({
+const interTight = localFont({
+  src: "./fonts/inter-tight-latin.woff2",
+  weight: "100 900",
+  display: "swap",
   variable: "--font-inter-tight",
-  subsets: ["latin"],
 });
 
-export const metadata = {
+export const metadata: Metadata = {
+  metadataBase: new URL("https://viraj-portfolio-mu.vercel.app/"),
   title: "Viraj Patil — AI, Cybersecurity & Full-Stack Systems",
   description:
     "Portfolio of Viraj Patil — building projects across AI, cybersecurity, computer vision, and full-stack engineering.",

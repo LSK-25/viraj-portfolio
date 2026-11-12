@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 
 type EraseTextProps = {
   lines: string[];
@@ -20,6 +20,7 @@ export function EraseText({
   className = "",
   restoreDelay = 3000,
 }: EraseTextProps) {
+  const reducedMotion = useReducedMotion();
   const [erasedLetters, setErasedLetters] = useState<Set<number>>(new Set());
   const timersRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
 
@@ -36,7 +37,7 @@ export function EraseText({
   }, [lines]);
 
   function eraseLetter(index: number, isSpace: boolean) {
-    if (isSpace) return;
+    if (isSpace || reducedMotion) return;
 
     setErasedLetters((previous) => {
       const next = new Set(previous);
@@ -60,17 +61,20 @@ export function EraseText({
   }
 
   useEffect(() => {
+    const timers = timersRef.current;
     return () => {
-      Object.values(timersRef.current).forEach((timer) => {
+      Object.values(timers).forEach((timer) => {
         clearTimeout(timer);
       });
     };
   }, []);
 
   return (
-    <span className={className}>
+    <span className={`erase-text ${className}`}>
+      <span className="sr-only">{lines.join(' ')}</span>
+      <span aria-hidden="true">
       {preparedLines.map((line, lineIndex) => (
-        <span key={lineIndex} className="block overflow-visible">
+        <span key={lineIndex} className="block overflow-visible whitespace-nowrap">
           {line.map((letter) => {
             const isSpace = letter.char === " ";
             const isErased = erasedLetters.has(letter.index);
@@ -78,10 +82,10 @@ export function EraseText({
             return (
               <motion.span
                 key={letter.key}
-                onPointerEnter={() => eraseLetter(letter.index, isSpace)}
-                className="relative -mr-[0.055em] inline-block whitespace-pre"
+                onPointerEnter={event => {if(event.pointerType === 'mouse') eraseLetter(letter.index, isSpace);}}
+                className="relative inline-block whitespace-pre"
                 animate={
-                  isErased
+                  isErased && !reducedMotion
                     ? {
                         opacity: 0,
                         scale: 0.35,
@@ -96,7 +100,7 @@ export function EraseText({
                       }
                 }
                 transition={{
-                  duration: isErased ? 0.18 : 0.65,
+                  duration: reducedMotion ? 0 : isErased ? 0.18 : 0.65,
                   ease: [0.22, 1, 0.36, 1],
                 }}
               >
@@ -133,6 +137,7 @@ export function EraseText({
           })}
         </span>
       ))}
+      </span>
     </span>
   );
 }

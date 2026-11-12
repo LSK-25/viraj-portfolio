@@ -1,0 +1,44 @@
+/* Original interactions, adapted to the portfolio's wine-red palette. */
+.portfolio-intro{position:fixed;inset:0;z-index:90;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:25px;background:#0b0b0c;pointer-events:none;animation:intro-dismiss .7s 1.65s cubic-bezier(.76,0,.24,1) forwards}
+.intro-wordmark{display:flex;overflow:hidden;font:550 clamp(35px,6vw,80px)/1.2 var(--font-inter-tight),sans-serif;letter-spacing:-.07em}
+.intro-wordmark span{display:inline-block;animation:intro-letter .65s calc(var(--letter-index)*.045s) cubic-bezier(.22,1,.36,1) both}
+.portfolio-intro p{font-size:9px;text-transform:uppercase;letter-spacing:.35em;color:#b78f9e;animation:intro-caption .6s .65s both}
+.intro-line{height:1px;width:210px;background:linear-gradient(90deg,transparent,#c1849a,transparent);transform-origin:left;animation:intro-line .7s .85s both}
+@keyframes intro-letter{from{transform:translateY(100%) rotate(8deg);opacity:0}to{transform:none;opacity:1}}
+@keyframes intro-caption{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes intro-line{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes intro-dismiss{to{opacity:0;visibility:hidden}}
+.neon-cursor{position:fixed;inset:0;width:100%;height:100%;z-index:60;pointer-events:none;mix-blend-mode:screen}
+.magnetic-link{position:relative;display:inline-flex;align-items:center}
+.desktop-nav .magnetic-link::after{position:absolute;content:'';inset:auto 0 -8px;height:1px;background:var(--wine-light);transform:scaleX(0);transform-origin:left;transition:transform .25s}
+.desktop-nav .magnetic-link:hover::after,.desktop-nav .magnetic-link:focus-visible::after{transform:scaleX(1)}
+.scramble-text{position:relative;display:inline-block;white-space:nowrap;line-height:inherit}
+.scramble-source{opacity:0;pointer-events:none}
+.scramble-display{position:absolute;inset:0}
+.erase-text{cursor:default}
+.hero{position:relative;isolation:isolate}
+.hero-ambient{pointer-events:none;position:absolute;inset:0;z-index:-1;overflow:hidden;contain:paint}
+.hero-ambient i{position:absolute;right:-16%;top:10%;width:60%;height:70%;border-radius:50%;background:radial-gradient(ellipse,#8e29431c,transparent 68%);animation:ambient-drift 14s ease-in-out infinite alternate}
+.hero-ambient i+i{left:-20%;right:auto;top:25%;background:radial-gradient(ellipse,#beb8bd0b,transparent 68%);animation-delay:-7s;animation-duration:18s}
+@keyframes ambient-drift{to{transform:translate(-10%,9%) scale(1.13)}}
+.hero-art-wrap{min-width:0;perspective:1000px}
+.hero-art{transform-style:preserve-3d}
+.art-scanline{position:absolute;left:0;right:0;height:1px;top:0;background:linear-gradient(90deg,transparent,#b8849b33,transparent);box-shadow:0 0 30px #a75a7822;animation:art-scan 9s ease-in-out infinite;pointer-events:none}
+@keyframes art-scan{0%,100%{transform:translateY(20px);opacity:0}25%,75%{opacity:1}90%{transform:translateY(400px);opacity:0}}
+.monogram{animation:monogram-float 8s ease-in-out infinite}
+@keyframes monogram-float{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-10px) rotate(1deg)}}
+.scroll-cue>span{display:inline-block;animation:scroll-nudge 2.8s ease-in-out infinite}
+@keyframes scroll-nudge{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
+.project-tilt{perspective:1000px}
+.project-visual .visual-arrow{transition:background .2s,transform .25s}
+.project-visual:hover .visual-arrow{transform:rotate(45deg)}
+.reveal-waiting{opacity:0;transform:translateY(25px)}
+.reveal-visible{animation:section-reveal .65s cubic-bezier(.22,1,.36,1) both}
+@keyframes section-reveal{from{opacity:0;transform:translateY(25px);filter:blur(3px)}to{opacity:1;transform:none;filter:none}}
+.reveal-waiting:focus-within,.reveal-visible:focus-within{opacity:1;transform:none;animation:none;filter:none}
+.case-file[open] .case-body{animation:case-reveal .3s ease-out}
+@keyframes case-reveal{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.contact-arrow{justify-content:center}
+@media(hover:none),(pointer:coarse){.neon-cursor{display:none}}
+@media(max-width:760px){.hero-copy,.hero-art-wrap{transform:none!important}#contact .contact-heading h2{font-size:clamp(26px,7.1vw,40px)}}
+@media(prefers-reduced-motion:reduce){.portfolio-intro,.neon-cursor{display:none}.reveal-waiting,.reveal-visible{opacity:1;transform:none;filter:none}.hero-copy,.hero-art-wrap,.hero-art,.project-tilt,.magnetic-link{transform:none!important}.monogram,.hero-ambient i,.art-scanline,.scroll-cue>span{animation:none!important}}

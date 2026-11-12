@@ -7,6 +7,7 @@ import { resourceCards, lookupPortfolio, assistantInstructions } from '../src/li
 import { readLimited, takeRateLimit } from '../src/lib/assistant-server';
 import { conversationWindow } from '../src/lib/assistant-client';
 import { BrowserVoice, browserVoiceSupported, type VoicePhase } from '../src/lib/browser-voice';
+import { needsWebSearch, publicSourceUrl, searchSources, validWebLookup } from '../src/lib/web-access';
 
 const originalFetch = globalThis.fetch;
 const originalKeys = { GROQ_API_KEY: process.env.GROQ_API_KEY, OPENAI_API_KEY: process.env.OPENAI_API_KEY };
@@ -89,6 +90,11 @@ test('chat uses the selected Groq model and never returns credentials or reasoni
     assert.equal(data.model, 'openai/gpt-oss-20b');
     assert.equal(data.include_reasoning, false);
     assert.equal(data.reasoning_effort, 'low');
+    assert.equal(data.max_completion_tokens, 1200);
+    assert.equal(data.temperature, 0.6);
+    assert.equal(data.stream, false);
+    assert.equal(data.tools, undefined);
+    assert.equal(data.tool_choice, undefined);
     assert.equal(data.messages[0].role, 'system');
     assert.match(data.messages[0].content, /WhatsApp-first/);
     assert.equal(data.messages[1].role, 'user');
@@ -98,6 +104,7 @@ test('chat uses the selected Groq model and never returns credentials or reasoni
   const result = await response.json();
   assert.equal(response.status, 200);
   assert.equal(result.links.length, 2);
+  assert.equal(result.web, undefined);
   assert.doesNotMatch(JSON.stringify(result), /test-placeholder|private provider/);
 });
 
@@ -274,4 +281,114 @@ test('replaying a blocked reply keeps recognition paused until playback finishes
     assert.equal(fake.recognizers.length, 1);
     assert.equal(fake.phases.at(-1), 'speaking');
   } finally { fake.voice.stop(); }
+});
+
+test('fresh questions and short news follow-ups use search; portfolio and ordinary chat do not', () => {
+  const turns = (content: string) => [{ role: 'user', content }];
+  assert.equal(needsWebSearch(turns('What is the latest Nvidia news?')), true);
+  assert.equal(needsWebSearch(turns('Search the web for a Python tutorial')), true);
+  assert.equal(needsWebSearch(turns('Explain a Python dictionary')), false);
+  assert.equal(needsWebSearch(turns("What is the current status of Viraj's NOVA project?")), false);
+  assert.equal(needsWebSearch(turns('Explain a Python dictionary'), true), true);
+  assert.equal(needsWebSearch([
+    ...turns('What is the latest Nvidia news?'),
+    { role: 'assistant', content: 'Here are the announcements.' },
+    ...turns('What about AMD?'),
+  ]), true);
+});
+
+test('source cards only use retrieved public HTTPS pages, never prose-only or private links', () => {
+  const url = 'https://nvidianews.nvidia.com/news/example';
+  const sources = searchSources({
+    content: '[Invented](https://madeup.example/story)',
+    executed_tools: [
+      { browser_results: [{ title: 'Nvidia announcement', url }, { url: 'https://localhost/private' }, { url: 'javascript:alert(1)' }] },
+      { search_results: { results: [{ title: 'Duplicate', url }, { title: 'Another source', url: 'https://blogs.nvidia.com/blog/example/' }] } },
+    ],
+  });
+  assert.equal(sources.length, 2);
+  assert.deepEqual(sources[0], { label: 'Nvidia announcement', href: url, host: 'nvidianews.nvidia.com' });
+  assert.deepEqual(searchSources({ content: '[Source](https://nvidia.com)' }), []);
+  for (const invalid of ['http://nvidia.com', 'https://127.0.0.1', 'https://192.168.1.1', 'https://[::1]', 'https://server.local', 'https://user:password@example.com', 'https://example.com:8443']) assert.equal(publicSourceUrl(invalid), null);
+  assert.equal(validWebLookup({ checkedAt: 'not a date', sources }), undefined);
+  assert.equal(validWebLookup({ checkedAt: new Date().toISOString(), sources })?.sources.length, 2);
+});
+
+function webResult(content = 'Nvidia has a new announcement.') {
+  return { choices: [{ message: { content, executed_tools: [{ type: 'browser_search', index: 0, arguments: '{}', browser_results: [{ title: 'Nvidia announcement', url: 'https://nvidianews.nvidia.com/news/example' }] }] } }] };
+}
+
+test('a news question enables only browser search on the same model and returns sources', async () => {
+  process.env.GROQ_API_KEY = 'test-placeholder-not-a-real-key';
+  let calls = 0;
+  globalThis.fetch = async (url, init) => {
+    calls++;
+    assert.equal(url, 'https://api.groq.com/openai/v1/chat/completions');
+    const data = JSON.parse(String(init?.body));
+    assert.equal(data.model, 'openai/gpt-oss-20b');
+    assert.equal(data.reasoning_effort, 'low');
+    assert.equal(data.stream, false);
+    assert.deepEqual(data.tools, [{ type: 'browser_search' }]);
+    assert.equal(data.tool_choice, 'required');
+    assert.match(data.messages[0].content, /Current UTC date/);
+    assert.match(data.messages[0].content, /untrusted evidence/);
+    assert.doesNotMatch(data.messages[0].content, /no web-search|do not have callable tools/);
+    return Response.json(webResult('A new announcement.\u30161\u2020L1-L2\u3017'));
+  };
+  const response = await chat(request({ messages: [{ role: 'user', content: 'What is the latest Nvidia news?' }] }));
+  assert.equal(response.status, 200);
+  const result = await response.json();
+  assert.equal(result.text, 'A new announcement.');
+  assert.equal(result.web.sources[0].host, 'nvidianews.nvidia.com');
+  assert.ok(Number.isFinite(Date.parse(result.web.checkedAt)));
+  assert.equal(calls, 1);
+});
+
+test('the explicit search toggle can retrieve sources for a question without freshness keywords', async () => {
+  process.env.GROQ_API_KEY = 'test-placeholder-not-a-real-key';
+  globalThis.fetch = async (_url, init) => {
+    assert.equal(JSON.parse(String(init?.body)).tool_choice, 'required');
+    return Response.json(webResult());
+  };
+  const response = await chat(request({ messages: [{ role: 'user', content: 'How does CUDA work?' }], search: true }));
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).web.sources.length, 1);
+});
+
+test('search without retrieved source records cannot silently return an unverified news answer', async () => {
+  process.env.GROQ_API_KEY = 'test-placeholder-not-a-real-key';
+  globalThis.fetch = async () => Response.json({ choices: [{ message: { content: 'Unverified news [source](https://nvidia.com)' } }] });
+  const response = await chat(request({ messages: [{ role: 'user', content: 'Latest Nvidia news' }] }));
+  assert.equal(response.status, 502);
+  const result = await response.json();
+  assert.match(result.error, /cannot verify/);
+  assert.equal(result.text, undefined);
+});
+
+test('unavailable or quota-limited search reports the issue without another provider call', async () => {
+  process.env.GROQ_API_KEY = 'test-placeholder-not-a-real-key';
+  for (const status of [400, 403, 404, 429]) {
+    let calls = 0;
+    globalThis.fetch = async () => { calls++; return Response.json({ error: 'private provider details' }, { status }); };
+    const response = await chat(request({ messages: [{ role: 'user', content: 'Latest Nvidia news' }] }));
+    assert.equal(response.status, status === 429 ? 429 : 503);
+    assert.doesNotMatch(await response.text(), /private provider details/);
+    assert.equal(calls, 1);
+  }
+});
+
+test('search has a separate burst limit without blocking ordinary chat at that limit', async () => {
+  process.env.GROQ_API_KEY = 'test-placeholder-not-a-real-key';
+  let calls = 0;
+  globalThis.fetch = async () => { calls++; return Response.json(webResult()); };
+  const makeRequest = (content: string) => {
+    const result = request({ messages: [{ role: 'user', content }] });
+    result.headers.set('x-forwarded-for', 'web-limit-test');
+    return result;
+  };
+  for (let index = 0; index < 3; index++) assert.equal((await chat(makeRequest('Latest Nvidia news'))).status, 200);
+  assert.equal((await chat(makeRequest('Latest Nvidia news'))).status, 429);
+  assert.equal(calls, 3);
+  assert.equal((await chat(makeRequest('Explain a Python function'))).status, 200);
+  assert.equal(calls, 4);
 });

@@ -68,16 +68,15 @@ export function BackgroundVideo() {
   return (
     <>
       <div className="hero-film" ref={frame}>
-        <div className="hero-film-image" aria-hidden="true" />
         <video
           ref={video}
           className={failed ? "hero-film-video is-unavailable" : "hero-film-video"}
           src="/videos/leon-loop.mp4"
-          poster="/images/0db89ff0d3923a0faa425262dcedd137.png"
+          autoPlay
           muted
           loop
           playsInline
-          preload="none"
+          preload="metadata"
           aria-hidden="true"
           tabIndex={-1}
           onPlay={() => setPlaying(true)}

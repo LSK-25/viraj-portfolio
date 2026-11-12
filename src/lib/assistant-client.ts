@@ -1,4 +1,5 @@
 import { approvedLinks, type LinkCard } from './portfolio-knowledge';
+import { needsWebSearch, validWebLookup } from './web-access';
 
 export type ChatMessage = { role: 'user' | 'assistant'; content: string };
 
@@ -16,12 +17,14 @@ export function conversationWindow(messages: ChatMessage[]): ChatMessage[] {
   return result;
 }
 
-export async function requestAnswer(messages: ChatMessage[], signal: AbortSignal, voice = false) {
+export async function requestAnswer(messages: ChatMessage[], signal: AbortSignal, voice = false, forceSearch = false) {
+  const recent = conversationWindow(messages);
+  const search = needsWebSearch(recent, forceSearch);
   const response = await fetch('/api/assistant/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ messages: conversationWindow(messages), voice }),
-    signal: AbortSignal.any([signal, AbortSignal.timeout(35_000)]),
+    body: JSON.stringify({ messages: recent, voice, ...(forceSearch ? { search: true } : {}) }),
+    signal: AbortSignal.any([signal, AbortSignal.timeout(search ? 70_000 : 35_000)]),
   });
   const result = await response.json();
   if (!response.ok) throw new Error(result.error || 'The assistant could not answer. Please try again.');
@@ -31,5 +34,5 @@ export async function requestAnswer(messages: ChatMessage[], signal: AbortSignal
   const links: LinkCard[] = Array.isArray(result.links)
     ? result.links.filter((link: LinkCard) => link && typeof link.label === 'string' && approvedLinks.has(link.href))
     : [];
-  return { text: result.text as string, links };
+  return { text: result.text as string, links, web: validWebLookup(result.web) };
 }

@@ -1,5 +1,6 @@
 import { conversationWindow, requestAnswer, type ChatMessage } from './assistant-client';
 import type { LinkCard } from './portfolio-knowledge';
+import type { WebLookup } from './web-access';
 
 export type VoicePhase = 'idle' | 'connecting' | 'listening' | 'thinking' | 'speaking';
 
@@ -29,6 +30,7 @@ type Callbacks = {
   error(message: string): void;
   level(value: number): void;
   playbackBlocked(value: boolean): void;
+  web?(id: string, lookup: WebLookup): void;
 };
 
 export function browserVoiceSupported() {
@@ -53,7 +55,7 @@ export class BrowserVoice {
   private utterance: SpeechSynthesisUtterance | null = null;
   private pendingSpeech = '';
 
-  constructor(private callbacks: Callbacks, history: ChatMessage[] = []) {
+  constructor(private callbacks: Callbacks, history: ChatMessage[] = [], private forceSearch = false) {
     this.history = conversationWindow(history);
   }
 
@@ -150,10 +152,12 @@ export class BrowserVoice {
     this.callbacks.message(crypto.randomUUID(), 'user', text, false);
     const controller = this.request = new AbortController();
     try {
-      const result = await requestAnswer(this.history, controller.signal, true);
+      const result = await requestAnswer(this.history, controller.signal, true, this.forceSearch);
       if (this.stopped || turn !== this.generation) return;
       this.history = conversationWindow([...this.history, { role: 'assistant', content: result.text }]);
-      this.callbacks.message(crypto.randomUUID(), 'assistant', result.text, false);
+      const replyId = crypto.randomUUID();
+      this.callbacks.message(replyId, 'assistant', result.text, false);
+      if (result.web) this.callbacks.web?.(replyId, result.web);
       this.callbacks.links(result.links);
       this.pendingSpeech = result.text;
       this.speak(result.text, turn);

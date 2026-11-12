@@ -1,127 +1,148 @@
-# Viraj Patil - portfolio
+# Viraj Patil - spatial portfolio
 
-Updated Next.js source for the existing site at https://viraj-portfolio-mu.vercel.app/.
+Updated source for the existing portfolio at https://viraj-portfolio-mu.vercel.app/.
+This package has not been pushed or deployed. The running website changes only
+after this source is deployed to its existing Vercel project.
 
-The black, graphite and wine palette, Leon looping background, portrait fallback,
-playback controls, original interaction effects and optional heartbeat are retained.
-The project order is NOVA / ADA, BILLi&BoBA, Sadafuli by Isha, then Sentinel.
-The original CV and two-page portfolio PDF are included.
+## This revision
 
-## Free AI setup
+- Leon's looping video fills the hero. The still-image layer and image poster
+  are removed. The video has Play/Pause controls and pauses offscreen or in a
+  hidden tab. Reduced-motion preferences disable automatic playback.
+- A scroll-driven Three.js gallery presents four original scenes: the NOVA desk
+  companion concept, BILLi&BoBA's nail collection, Sadafuli's folded textile and
+  flower, and Sentinel's camera concept. These are illustrative models, not
+  photographs or claims that the concept hardware has shipped.
+- Scroll between chapters, use the numbered chapter buttons, and drag the scene
+  with a mouse to rotate it. Pause motion stops idle animation. Index view gives
+  direct access to every project without travelling through the 3D scene.
+- The gallery loads near the viewport and stops rendering when offscreen or in
+  a hidden tab. Reduced motion, compact viewports and graphics failures use the
+  project index. A no-JavaScript index is also included.
+- News and other freshness-sensitive questions can search the web. Ordinary chat
+  retains its existing model, inference settings, browser voice and turn timing.
+- Heartbeat now has a clearer double pulse, an animated indicator, volume control
+  and a Preview button. It is optional ambient sound, not an AI health indicator.
 
-This revision uses GPT-OSS 20B hosted by Groq. Use a Groq account on its **Free**
-plan to avoid model usage charges. Free usage has quotas and can become unavailable
-when a limit is reached. This is an online service, not an unlimited or offline model.
+The black, graphite and wine palette, verified project order, project links,
+original CV and two-page portfolio PDF are preserved. The spatial direction was
+informed by https://alche.studio/; its assets and code were not copied.
 
-1. Sign in at https://console.groq.com/ and keep the account on the Free plan.
-2. Create a key at https://console.groq.com/keys, with a name such as Viraj Portfolio.
-3. For local use, copy .env.example to .env.local and enter the key as GROQ_API_KEY.
-   Keep the key private. .env.local is ignored by Git and excluded from this ZIP.
-4. For the live website, add GROQ_API_KEY to the existing portfolio Vercel project's
-   server environment variables for Production (and Preview if needed).
-5. Deploy this source to that existing project, then test text and voice.
+## Apply to the existing project
 
-There is no OpenAI API key or OpenAI project to configure. The model name contains
-"openai" because OpenAI released the open-weight model; requests go to Groq.
-The code never calls api.openai.com and never switches to a paid provider when
-the free quota is exhausted. An old OPENAI_API_KEY does not enable this assistant.
-The retired /api/assistant/session endpoint returns 410 without contacting a provider.
+1. Extract the ZIP and open the enclosed project folder.
+2. Copy its source into the repository already connected to your portfolio.
+   Preserve that repository's .git directory, Vercel connection and .env.local.
+3. If merging into an older version, delete src/lib/realtime-voice.ts if present;
+   it is the retired paid voice integration and is absent from this package.
+4. Run npm ci, then npm run typecheck and npm run build.
+5. Test locally with npm run dev, then commit and push the source through your
+   existing deployment workflow. No new Vercel project is necessary.
 
-Free pricing is an account-plan condition. If you upgrade the Groq account to a
-paid plan, its usage can be billed. The app cannot inspect or enforce your account
-billing plan. Keep the account on Free.
+Use Node.js 22 or 24. The default Next.js production build uses Turbopack.
+API routes need server hosting; do not use a static export. No credentials or
+generated build folders are included in this ZIP.
 
-The model is pinned to openai/gpt-oss-20b in src/app/api/assistant/chat/route.ts.
-Optional ASSISTANT_ALLOWED_ORIGINS adds explicit trusted origins; same-origin
-requests are accepted by default. Never use NEXT_PUBLIC_ for API secrets.
+## Existing free AI setup
 
-## Run locally
+The model remains openai/gpt-oss-20b hosted by Groq. Keep your Groq account on its
+Free plan to avoid model usage charges; free usage has quotas. This is an online
+service, not unlimited or offline inference.
 
-Use Node.js 22 or 24 and npm:
+Your existing GROQ_API_KEY is sufficient for the built-in browser-search route;
+no separate search-provider key was added. Leave the key in the existing Vercel
+project's server environment variables. For local testing, copy .env.example to
+.env.local and set GROQ_API_KEY there. Never put it in a NEXT_PUBLIC_ variable.
 
-```bash
-npm ci
-npm run dev
-```
+There is no OpenAI API key or paid-provider fallback. The model name contains
+"openai" because OpenAI released the model, but requests go to Groq. An old
+OPENAI_API_KEY does not enable this assistant. The retired session endpoint
+returns 410 without contacting a provider. The app cannot inspect your billing
+plan: upgrading the provider account can enable billed usage.
 
-Open the URL printed by Next.js. The portfolio and document links work without a
-key. Missing AI credentials show an unavailable message instead of a fabricated
-model reply.
+Ordinary chat keeps low reasoning effort, temperature 0.6, a 1200-token completion
+limit, non-streaming output and the existing timeout. Speech rate, pitch and
+recognition/interruption timing have not been changed. No latency improvement is
+claimed or attempted in this revision.
 
-Copy the updated source into the repository already connected to the portfolio,
-preserving that repository's .git directory and Vercel connection. If you merge
-files into the old source, also delete src/lib/realtime-voice.ts: that module was
-retired and is intentionally absent from this revision. Use npm ci and npm run
-build, then commit and push the updated source to the connected repository.
-The API routes require server hosting; do not use static export.
-This package has not been pushed or deployed.
+## Current information and sources
 
-## Voice and interaction
+- Questions containing freshness cues such as latest news, today or current
+  weather automatically request Groq's browser_search tool.
+- The Search the web switch lets you request a lookup for other questions.
+- Search runs only when needed or explicitly requested. Its extra retrieval work
+  can take longer than ordinary replies; it is not a continuous live news feed.
+- Answers include source cards and the retrieval time. Cards are derived from
+  provider-returned browser/search records, not URLs invented in answer text.
+- If the account cannot use search, a quota is exhausted, or the response lacks
+  usable source records, the application reports the problem. It does not silently
+  substitute an unverified current-news answer or switch to another provider.
+- Verify important claims against the linked sources. A retrieval timestamp is
+  not an article publication timestamp or a guarantee of exhaustive coverage.
 
-Voice uses the browser's speech recognition and speech synthesis, plus the same
-Groq text endpoint. No paid audio API is connected.
+Only browser search is enabled. Code execution, email sending and desktop control
+are not connected. Basic limits allow ten chat requests and three web lookups per
+minute per caller, per server instance; provider account limits also apply.
 
-- Start voice begins English speech recognition after browser permission.
-- Recognition pauses while the model answers and while the browser reads its
-  reply, which prevents it from hearing its own output.
-- Interrupt & speak cancels a pending answer or stops playback, then listens for
-  your next turn. Automatic spoken barge-in is not implemented.
-- Mute mic, End voice and closing the dialog stop recognition appropriately.
-  A five-minute timer ends an unattended session.
-- Read reply retries speech when a browser blocks playback.
-- Unsupported browsers can still use text chat. Voice requires HTTPS or localhost
-  and browser support for both speech recognition and synthesis.
-- Heartbeat is optional. It becomes quieter while voice is active, pauses in a
-  hidden tab, and stops when the panel closes.
+Live retrieval has not been tested with your Groq account in this revision. The
+integration follows Groq's current documented browser-search request and source
+metadata schema. Its success and failure paths have mocked regression coverage.
 
-Speech quality, available voices and recognition depend on the browser/device.
-This does not clone Leon's voice. It does not promise zero latency or the same
-continuous audio experience as a dedicated realtime voice service.
+## Voice and heartbeat
 
-The waveform indicates voice activity; it is not a calibrated audio-level meter.
+Voice uses browser speech recognition and speech synthesis plus the same Groq
+text endpoint. No paid audio API is connected. Recognition pauses during replies
+so it does not hear its own output. Interrupt & speak cancels the pending answer
+or playback and resumes listening. Mute, End voice and closing the panel stop
+recognition appropriately. A five-minute timer ends an unattended voice session.
+Read reply retries speech when playback is blocked. Automatic spoken barge-in is
+not implemented. Voice requires HTTPS or localhost and a supported browser.
 
-## Data and privacy
+The heartbeat is off by default. Open Talk to NOVA, click Preview to hear the
+sample, then turn Heartbeat sound on. Adjust Volume as needed. It becomes quieter
+during conversation, pauses in hidden tabs and stops when the panel closes. If
+Preview is silent, check tab mute, the selected audio output and device volume.
+It does not measure a pulse, indicate server health, keep the model awake or
+change NOVA's reply speed. The voice waveform is a decorative activity indicator,
+not a calibrated sound-level meter.
 
-Text questions, conversation context and voice transcripts go to Groq. Speech
-recognition may send microphone audio to the browser vendor's online service.
-Speech playback can use a local or browser-provided voice. Do not describe this
-setup as fully local or offline.
+A custom Leon-style voice is not connected yet. A clean voice recording and a
+separate reference-conditioned speech service are needed; browser voice selection
+cannot turn an uploaded audio file into a cloned voice. No new speech service,
+model download or hosting charge has been introduced.
 
-The app holds transcripts in page memory; it does not store them in a database or
-localStorage. Provider policies still apply. No web search, email sending or
-desktop control is connected. The website assistant is distinct from the local
-NOVA / ADA prototype.
+## Data and content
 
-Verified portfolio facts and approved resource links are in src/data/portfolio.json.
-The assistant can discuss general topics, but it must not invent Viraj's experience,
-project results or links. Origin checks, request-size limits, bounded conversation
-context, provider timeouts, sanitized errors and ten requests per minute per caller
-provide basic protection. The in-memory limit is per server instance, not a global
-quota or authentication system. Groq's account limits remain applicable.
+Text questions, recent conversation context and voice transcripts go to Groq.
+Search requests also involve its search service. Speech recognition may send
+microphone audio to the browser vendor's online service. Speech playback depends
+on the browser/device. Do not describe this website assistant as fully offline.
 
-## Content and downloads
+Transcripts remain in page memory; this application does not save them to a
+database or localStorage. Provider policies still apply. The website assistant
+is distinct from the local NOVA/ADA project and remains English-only.
+
+Verified portfolio facts and resource links live in src/data/portfolio.json.
+The assistant must not invent experience, results, project availability or links.
+The original documents and project links are included:
 
 - Sadafuli: https://sadafuli.vercel.app/
 - BILLi&BoBA: https://billi-boba-nails.vercel.app/
 - Original CV: public/Viraj_Patil_Resume.pdf
 - Portfolio PDF: public/Viraj_Patil_Portfolio.pdf
 
-Rebuild the PDF after changing portfolio facts:
+The video is public/videos/leon-loop.mp4. Its supplied reference is
+https://www.youtube.com/watch?v=gTPsGjDC-gU. No portrait fallback is rendered.
+Inter and Inter Tight load locally from src/app/fonts. Generated project artwork
+is illustrative, not a screenshot of the live client websites.
 
-```bash
-python -m pip install reportlab
-python scripts/build_portfolio_pdf.py
-```
-
-Embedded PDF fonts and their license are in scripts/fonts. Inspect both pages
-after content changes; the generator checks vertical overflow. Project cover art
-is a graphic treatment, not a live-site screenshot.
-
-The hero uses public/videos/leon-loop.mp4 and the supplied portrait fallback.
-The reference is https://www.youtube.com/watch?v=gTPsGjDC-gU.
-Inter and Inter Tight load from src/app/fonts.
+To rebuild the portfolio PDF after changing facts, install reportlab and run
+`python scripts/build_portfolio_pdf.py`. Embedded fonts and licenses are in
+scripts/fonts. Inspect both pages after rebuilding.
 
 ## Verification
+
+Commands for a normal installation:
 
 ```bash
 npm run typecheck
@@ -130,33 +151,39 @@ npm run lint
 npm run build
 ```
 
-The regression suite covers verified links, origin and payload validation, provider
-selection, disabling legacy paid requests, missing credentials, quota handling,
-context bounds, voice interruption, mute, permission failure, closing during
-startup, late responses and blocked-playback recovery. Model responses and browser
-speech are mocked. These checks do not measure real latency or speech quality.
+The 28 mocked regression tests pass. They cover verified links, origin and payload
+validation, provider selection, absent credentials, quota handling, conversation
+bounds, unchanged ordinary-chat settings, voice interruption, mute, permission
+failure, closing during startup, late replies, blocked playback, search routing,
+explicit search, source validation and search failures. Tests were run using Node's
+test runner through a temporary TypeScript compilation harness because the local
+tsx runner was unavailable. No production credentials are used in these tests.
 
-The production webpack build, TypeScript check, lint of the edited components,
-and all 21 mocked regression tests passed. The tests were run through a temporary
-TypeScript compilation harness using Node's test runner. Desktop and 390px browser
-layouts, the assistant dialog, heartbeat toggle and missing-key state were checked.
-The final browser check showed no horizontal overflow or console errors.
+TypeScript, lint of the changed components/API/tests and the default Next.js
+production build (Turbopack) pass. The optional webpack build hit a Windows EPERM
+error while creating an output directory; the default build completed successfully.
+Production HTTP checks also pass for the hero HTML, video, both PDFs, assistant
+provider status and rejection of requests from an unrelated origin.
+A fresh interactive desktop/mobile
+browser review and audible heartbeat check could not be completed in this session.
+Earlier screenshots and browser checks belong to the previous version, not this
+new 3D revision. Real voice quality, retrieval, latency and device GPU performance
+are not established by the mocked tests.
 
-After configuring a Free-plan key, test a general question, project facts, CV
-links, microphone permission, interruption, mute/unmute, Read reply, heartbeat,
-closing a call and mobile layout. No live provider test has been run for this
-revision because no Groq key is configured.
+After deployment, test the hero Play/Pause control; all four gallery chapters;
+mouse rotation; Index view; small-screen and reduced-motion fallback; project/CV
+links; a normal conversation; latest Nvidia news and its source links; microphone
+permission; interruption; mute; Preview; volume; and closing the assistant.
 
-## Sources checked on 12 November 2026
+## References checked on 12 November 2026
 
-- Model: https://console.groq.com/docs/model/openai/gpt-oss-20b
-- Setup: https://console.groq.com/docs/quickstart
-- Free-plan quotas: https://console.groq.com/docs/rate-limits
+- Groq model: https://console.groq.com/docs/model/openai/gpt-oss-20b
+- Browser search: https://console.groq.com/docs/tool-use/built-in-tools/browser-search
+- Source metadata: https://github.com/groq/groq-typescript/blob/main/src/resources/chat/completions.ts
+- Free-plan limits: https://console.groq.com/docs/rate-limits
 - Billing: https://console.groq.com/docs/billing-faqs
-- Browser speech: https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition
+- React Three Fiber: https://r3f.docs.pmnd.rs/api/canvas
+- On-demand rendering: https://r3f.docs.pmnd.rs/advanced/scaling-performance
 
-## Sharing source
-
-Include src, public, scripts, tests, package.json, package-lock.json, configuration
-files, README.md and .env.example. Omit node_modules, .next, local .env files and
-credentials. The included source ZIP intentionally excludes generated build files.
+The source archive excludes node_modules, .next, .git, .vercel, local environment
+files, credentials, caches and generated TypeScript build information.

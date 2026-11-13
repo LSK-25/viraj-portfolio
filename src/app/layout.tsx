@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import "./cinema.css";
 import "./spatial.css";
+import "./glass.css";
 
 const inter = localFont({
   src: "./fonts/inter-latin.woff2",

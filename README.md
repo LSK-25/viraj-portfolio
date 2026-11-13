@@ -4,29 +4,43 @@ Updated source for the existing portfolio at https://viraj-portfolio-mu.vercel.a
 This package has not been pushed or deployed. The running website changes only
 after this source is deployed to its existing Vercel project.
 
-## This revision
+## This revision: glass studio
 
-- Leon's looping video fills the hero. The still-image layer and image poster
-  are removed. The video has Play/Pause controls and pauses offscreen or in a
-  hidden tab. Reduced-motion preferences disable automatic playback.
-- A scroll-driven Three.js gallery presents four original scenes: the NOVA desk
-  companion concept, BILLi&BoBA's nail collection, Sadafuli's folded textile and
-  flower, and Sentinel's camera concept. These are illustrative models, not
-  photographs or claims that the concept hardware has shipped.
-- Scroll between chapters, use the numbered chapter buttons, and drag the scene
-  with a mouse to rotate it. Pause motion stops idle animation. Index view gives
-  direct access to every project without travelling through the 3D scene.
-- The gallery loads near the viewport and stops rendering when offscreen or in
-  a hidden tab. Reduced motion, compact viewports and graphics failures use the
-  project index. A no-JavaScript index is also included.
-- News and other freshness-sensitive questions can search the web. Ordinary chat
-  retains its existing model, inference settings, browser voice and turn timing.
-- Heartbeat now has a clearer double pulse, an animated indicator, volume control
-  and a Preview button. It is optional ambient sound, not an AI health indicator.
+- VIRAJ PATIL is the oversized hero headline, and the full name is also in the
+  navigation and footer. The public location is India.
+- Leon's looping background video is retained, with Play/Pause, hidden-tab
+  pausing and reduced-motion support. There is no still-image hero overlay.
+- Frosted panels, reflective surfaces and rose/mint lighting carry through the
+  hero, gallery, about section and contact section.
+- Four illustrated project cards replace the plain case-file rows. Each has
+  original dimensional artwork and expands to reveal the actual challenge,
+  approach, outcome, stack and links. Headings no longer erase their letters.
+- The Three.js gallery has a recoverable loading/error state. A failed graphics
+  context shows a CSS dimensional illustration, with Retry full 3D available.
+  The 3D-view button is never permanently disabled after a graphics failure.
+  Optional reflection-map failure keeps the scene's direct lights working.
+- The camera stays in front of the artwork while chapters move between scenes.
+  Chapter buttons, mouse drag, Pause motion and Index view remain available.
+  Reduced motion starts in Index view; mobile users can choose either view.
+- NOVA has a much larger conversation area, a full-window expand control and a
+  compact voice toolbar. Optional heartbeat/sound controls are collapsed.
+- Web search is automatic for news and other detected freshness-sensitive
+  questions. The Search web switch has been removed. Broad monthly news requests
+  ask for a dated digest and month-to-date coverage, rather than an entire archive.
+- General questions send a small identity record instead of the full project
+  catalogue. Project questions still use verified project facts.
+- Quota errors preserve the question and show a retry countdown when the provider
+  supplies a reset time. Retries are manual. Voice stops listening on a quota
+  error rather than repeatedly submitting failed turns.
 
-The black, graphite and wine palette, verified project order, project links,
-original CV and two-page portfolio PDF are preserved. The spatial direction was
-informed by https://alche.studio/; its assets and code were not copied.
+Groq's account quota has not been removed or increased. Ordinary chat retains
+its existing model, generation settings, speech rate and turn timing. Search can
+still take longer because it retrieves sources. No latency improvement is claimed.
+
+The original CV, project order and project links are preserved. Project artwork
+is illustrative, not a product photograph or a claim that concept hardware has
+shipped. The spatial direction was informed by https://alche.studio/; its assets
+and code were not copied.
 
 ## Apply to the existing project
 
@@ -36,8 +50,21 @@ informed by https://alche.studio/; its assets and code were not copied.
 3. If merging into an older version, delete src/lib/realtime-voice.ts if present;
    it is the retired paid voice integration and is absent from this package.
 4. Run npm ci, then npm run typecheck and npm run build.
-5. Test locally with npm run dev, then commit and push the source through your
-   existing deployment workflow. No new Vercel project is necessary.
+5. Test locally with npm run dev. After copying the files into your existing
+   connected repository, use PowerShell:
+
+```powershell
+Set-Location "C:\Projects\viraj-portfolio"
+git status
+git add src public tests scripts README.md package.json package-lock.json
+git commit -m "Add glass portfolio, prominent identity and expanded NOVA"
+git push origin main
+```
+
+Wait for that commit's Vercel deployment to show Ready, then refresh the public
+site. Extracting a ZIP or copying files alone does not update the online version.
+No new Vercel project is necessary. The obvious version check is the large
+VIRAJ / PATIL headline and the illustrated project cards.
 
 Use Node.js 22 or 24. The default Next.js production build uses Turbopack.
 API routes need server hosting; do not use a static export. No credentials or
@@ -69,11 +96,13 @@ claimed or attempted in this revision.
 
 - Questions containing freshness cues such as latest news, today or current
   weather automatically request Groq's browser_search tool.
-- The Search the web switch lets you request a lookup for other questions.
+- No Search web switch is required. You can also ask for a lookup in plain text.
 - Search runs only when needed or explicitly requested. Its extra retrieval work
   can take longer than ordinary replies; it is not a continuous live news feed.
 - Answers include source cards and the retrieval time. Cards are derived from
   provider-returned browser/search records, not URLs invented in answer text.
+- Broad requests use a brief global scope unless the user names a region; the
+  prompt requests event dates, current-month coverage and no future events.
 - If the account cannot use search, a quota is exhausted, or the response lacks
   usable source records, the application reports the problem. It does not silently
   substitute an unverified current-news answer or switch to another provider.
@@ -98,8 +127,8 @@ recognition appropriately. A five-minute timer ends an unattended voice session.
 Read reply retries speech when playback is blocked. Automatic spoken barge-in is
 not implemented. Voice requires HTTPS or localhost and a supported browser.
 
-The heartbeat is off by default. Open Talk to NOVA, click Preview to hear the
-sample, then turn Heartbeat sound on. Adjust Volume as needed. It becomes quieter
+The heartbeat is off by default. Open Talk to NOVA, expand Sound & voice options,
+click Preview to hear the sample, then turn Heartbeat sound on. Adjust Volume as needed. It becomes quieter
 during conversation, pauses in hidden tabs and stops when the panel closes. If
 Preview is silent, check tab mute, the selected audio output and device volume.
 It does not measure a pulse, indicate server health, keep the model awake or
@@ -151,37 +180,58 @@ npm run lint
 npm run build
 ```
 
-The 28 mocked regression tests pass. They cover verified links, origin and payload
-validation, provider selection, absent credentials, quota handling, conversation
-bounds, unchanged ordinary-chat settings, voice interruption, mute, permission
-failure, closing during startup, late replies, blocked playback, search routing,
-explicit search, source validation and search failures. Tests were run using Node's
-test runner through a temporary TypeScript compilation harness because the local
-tsx runner was unavailable. No production credentials are used in these tests.
+The 36 mocked regression tests pass. They cover verified links, origin and
+payload validation, provider selection, absent credentials, conversation bounds,
+unchanged ordinary-chat settings, voice interruption/mute/permissions, search
+routing and source validation. New cases cover monthly-news prompt scope,
+smaller context, real reset-header parsing, structured quota errors, client
+single-attempt behavior and stopping voice on a quota error.
 
-TypeScript, lint of the changed components/API/tests and the default Next.js
-production build (Turbopack) pass. The optional webpack build hit a Windows EPERM
-error while creating an output directory; the default build completed successfully.
-Production HTTP checks also pass for the hero HTML, video, both PDFs, assistant
-provider status and rejection of requests from an unrelated origin.
-A fresh interactive desktop/mobile
-browser review and audible heartbeat check could not be completed in this session.
-Earlier screenshots and browser checks belong to the previous version, not this
-new 3D revision. Real voice quality, retrieval, latency and device GPU performance
-are not established by the mocked tests.
+Tests ran through Node's test runner using a temporary TypeScript compilation
+harness because the local tsx runner was unavailable. No production credentials
+were used. TypeScript, lint of the changed code/tests and the default Next.js
+production build (Turbopack) pass. Production HTTP checks verify the new identity,
+India location, four illustrated cards, NOVA controls, video, both PDFs, assistant
+status and cross-origin request rejection.
 
-After deployment, test the hero Play/Pause control; all four gallery chapters;
-mouse rotation; Index view; small-screen and reduced-motion fallback; project/CV
-links; a normal conversation; latest Nvidia news and its source links; microphone
-permission; interruption; mute; Preview; volume; and closing the assistant.
+A fresh interactive browser review was unavailable in this session. Device GPU
+behavior, responsive appearance, audible playback and live Groq/news answers
+still need checking in the deployed browser. Mocked tests validate integration
+behavior and prompt contents, not a guarantee of model output or actual latency.
 
-## References checked on 12 November 2026
+After deployment, check the large name, glass cards and expansion, all four 3D
+chapters, drag/Pause/Index/Retry controls, mobile and reduced motion, project/CV
+links, NOVA expand, normal chat, November news and source links, voice interrupt,
+heartbeat preview and closing the assistant.
+
+## Why the online model has a limit
+
+The website calls Groq-hosted openai/gpt-oss-20b. It does not call the laptop's
+Ollama Qwen model. Provider request/token quotas are shared by visitors using the
+same account. The application also has a modest per-instance burst limit.
+A new API key does not remove the account's quota.
+
+Offline Qwen uses your hardware, so it has no Groq API allowance. To use it from
+an online portfolio, you would need a protected server gateway to the laptop (or
+a dedicated GPU server) and the model would need to stay running. The machine
+must be online and awake; speed and concurrent visitor capacity depend on that
+hardware. Do not expose the raw, unauthenticated local Ollama port or connect
+ADA's desktop-control tools to public visitors. No self-hosting connection or
+model switch has been made in this revision.
+
+A cloud free tier keeps shared-service quotas. A paid plan increases capacity but
+still has usage costs and limits. A GPU server gives control over inference but
+has hosting costs. None of these options is unlimited free cloud compute.
+
+## References checked on 13 November 2026
 
 - Groq model: https://console.groq.com/docs/model/openai/gpt-oss-20b
 - Browser search: https://console.groq.com/docs/tool-use/built-in-tools/browser-search
 - Source metadata: https://github.com/groq/groq-typescript/blob/main/src/resources/chat/completions.ts
 - Free-plan limits: https://console.groq.com/docs/rate-limits
 - Billing: https://console.groq.com/docs/billing-faqs
+- Local Ollama hosting: https://docs.ollama.com/faq
+- Ollama authentication: https://docs.ollama.com/api/authentication
 - React Three Fiber: https://r3f.docs.pmnd.rs/api/canvas
 - On-demand rendering: https://r3f.docs.pmnd.rs/advanced/scaling-performance
 

@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import { POST as chat } from '../src/app/api/assistant/chat/route';
 import { POST as session } from '../src/app/api/assistant/session/route';
 import { GET as status } from '../src/app/api/assistant/status/route';
-import { resourceCards, lookupPortfolio, assistantInstructions } from '../src/lib/portfolio-knowledge';
-import { readLimited, takeRateLimit } from '../src/lib/assistant-server';
-import { conversationWindow } from '../src/lib/assistant-client';
+import { resourceCards, lookupPortfolio, assistantInstructions, contextualInstructions } from '../src/lib/portfolio-knowledge';
+import { readLimited, takeRateLimit, providerRetryAfter } from '../src/lib/assistant-server';
+import { conversationWindow, requestAnswer, AssistantRequestError } from '../src/lib/assistant-client';
 import { BrowserVoice, browserVoiceSupported, type VoicePhase } from '../src/lib/browser-voice';
 import { needsWebSearch, publicSourceUrl, searchSources, validWebLookup } from '../src/lib/web-access';
 
@@ -183,13 +183,13 @@ function fakeBrowser(autoStart = true) {
   };
   Object.defineProperty(globalThis, 'window', { configurable: true, value: browser });
   Object.defineProperty(globalThis, 'SpeechSynthesisUtterance', { configurable: true, value: FakeUtterance });
-  const phases: VoicePhase[] = [], messages: string[] = [], errors: string[] = [];
+  const phases: VoicePhase[] = [], messages: string[] = [], errors: string[] = [], retryTimes: (number | undefined)[] = [];
   const voice = new BrowserVoice({
     phase: phase => phases.push(phase),
     message: (_id, _role, text) => messages.push(text),
-    links: () => {}, error: error => errors.push(error), level: () => {}, playbackBlocked: () => {},
+    links: () => {}, error: (error, seconds) => { errors.push(error); retryTimes.push(seconds); }, level: () => {}, playbackBlocked: () => {},
   });
-  return { voice, phases, messages, errors, recognizers, spoken, browser, canceled: () => canceled };
+  return { voice, phases, messages, errors, retryTimes, recognizers, spoken, browser, canceled: () => canceled };
 }
 const settle = () => new Promise<void>(resolve => setImmediate(resolve));
 
@@ -344,7 +344,7 @@ test('a news question enables only browser search on the same model and returns 
   assert.equal(calls, 1);
 });
 
-test('the explicit search toggle can retrieve sources for a question without freshness keywords', async () => {
+test('legacy clients may still request a lookup explicitly without requiring a UI toggle', async () => {
   process.env.GROQ_API_KEY = 'test-placeholder-not-a-real-key';
   globalThis.fetch = async (_url, init) => {
     assert.equal(JSON.parse(String(init?.body)).tool_choice, 'required');
@@ -391,4 +391,148 @@ test('search has a separate burst limit without blocking ordinary chat at that l
   assert.equal(calls, 3);
   assert.equal((await chat(makeRequest('Explain a Python function'))).status, 200);
   assert.equal(calls, 4);
+});
+
+test('general questions send a smaller identity record while project follow-ups keep verified facts', () => {
+  const general = contextualInstructions([{ role: 'user', content: 'Explain recursion with an example' }]);
+  const project = contextualInstructions([{ role: 'user', content: 'How does Sadafuli work?' }]);
+  const record = (value: string) => JSON.parse(value.split('VERIFIED PORTFOLIO RECORD:\n')[1]);
+  assert.equal(record(general).name, 'Viraj Patil');
+  assert.equal(record(general).location, 'India');
+  assert.equal(record(general).projects, undefined);
+  assert.ok(general.length < project.length * .8);
+  assert.deepEqual(record(project).projects.map((item: { id: string }) => item.id), ['sadafuli']);
+  const followup = contextualInstructions([
+    { role: 'user', content: 'Tell me about Sadafuli' },
+    { role: 'assistant', content: 'It uses WhatsApp-first checkout.' },
+    { role: 'user', content: 'How was it built?' },
+  ]);
+  assert.match(followup, /WhatsApp-first/);
+  assert.deepEqual(record(followup).projects.map((item: { id: string }) => item.id), ['sadafuli']);
+});
+
+test('automatic search covers broad news, dated summaries, URLs and multi-turn news follow-ups', () => {
+  for (const content of ['NOVA, what is the latest Nvidia news?', 'Give me a November 2026 news roundup', 'Summarize events in 2026', 'What is happening in the world?', 'Verify https://nvidia.com/', 'Who won the election?']) {
+    assert.equal(needsWebSearch([{ role: 'user', content }]), true, content);
+  }
+  assert.equal(needsWebSearch([
+    { role: 'user', content: 'Latest Nvidia news' },
+    { role: 'assistant', content: 'Here are the announcements.' },
+    { role: 'user', content: 'What about AMD?' },
+    { role: 'assistant', content: 'Here are other updates.' },
+    { role: 'user', content: 'Any more from Intel?' },
+  ]), true);
+  assert.equal(needsWebSearch([{ role: 'user', content: 'How do Python loops work?' }]), false);
+});
+
+test('a broad monthly news question requests a dated digest without the project catalogue', async () => {
+  process.env.GROQ_API_KEY = 'test-placeholder-not-a-real-key';
+  let calls = 0;
+  globalThis.fetch = async (_url, init) => {
+    calls++;
+    const data = JSON.parse(String(init?.body));
+    const prompt = data.messages[0].content;
+    assert.equal(data.model, 'openai/gpt-oss-20b');
+    assert.deepEqual(data.tools, [{ type: 'browser_search' }]);
+    assert.match(prompt, /digest of 5 to 7/);
+    assert.match(prompt, /month-to-date/);
+    assert.match(prompt, /exclude future events/);
+    assert.match(prompt, /Do not refuse just because/);
+    assert.doesNotMatch(prompt, /WhatsApp-first|BILLi&BoBA/);
+    return Response.json(webResult('A dated, month-to-date overview.'));
+  };
+  const response = await chat(request({ messages: [{ role: 'user', content: 'Summarise all news in November 2026' }] }));
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).web.sources.length, 1);
+  assert.equal(calls, 1);
+});
+
+test('provider quota reset information passes to the client without leaking provider details or retrying', async () => {
+  process.env.GROQ_API_KEY = 'test-placeholder-not-a-real-key';
+  let calls = 0;
+  globalThis.fetch = async () => {
+    calls++;
+    return Response.json({ error: 'private provider details' }, { status: 429, headers: { 'Retry-After': '42' } });
+  };
+  const response = await chat(request(question));
+  assert.equal(response.status, 429);
+  assert.equal(response.headers.get('Retry-After'), '42');
+  const body = await response.json();
+  assert.equal(body.code, 'provider_rate_limit');
+  assert.equal(body.retryAfterSeconds, 42);
+  assert.match(body.error, /question is kept/);
+  assert.doesNotMatch(body.error, /private provider details/);
+  assert.equal(calls, 1);
+});
+
+test('provider reset parsing uses only supplied deadlines and exhausted buckets', () => {
+  assert.equal(providerRetryAfter(), undefined);
+  assert.equal(providerRetryAfter(new Headers()), undefined);
+  assert.equal(providerRetryAfter(new Headers({ 'Retry-After': 'nonsense' })), undefined);
+  assert.equal(providerRetryAfter(new Headers({ 'Retry-After': '1.5' })), 2);
+  assert.equal(providerRetryAfter(new Headers({ 'x-ratelimit-remaining-tokens': '0', 'x-ratelimit-reset-tokens': '1m2.5s' })), 63);
+  assert.equal(providerRetryAfter(new Headers({ 'x-ratelimit-remaining-tokens': '100', 'x-ratelimit-reset-tokens': '60s' })), undefined);
+  assert.equal(providerRetryAfter(new Headers({
+    'x-ratelimit-remaining-tokens': '0', 'x-ratelimit-reset-tokens': '2s',
+    'x-ratelimit-remaining-requests': '0', 'x-ratelimit-reset-requests': '1h2m',
+  })), 3720);
+  assert.equal(providerRetryAfter(new Headers({ 'x-ratelimit-remaining-tokens': '0', 'x-ratelimit-reset-tokens': 'not-a-time' })), undefined);
+  const date = new Date(Date.now() + 60_000).toUTCString();
+  const seconds = providerRetryAfter(new Headers({ 'Retry-After': date }))!;
+  assert.ok(seconds >= 59 && seconds <= 60);
+});
+
+test('the client preserves structured quota information and never auto-retries', async () => {
+  let calls = 0;
+  globalThis.fetch = async () => {
+    calls++;
+    return Response.json({ error: 'Usage limit reached', code: 'provider_rate_limit', retryAfterSeconds: 18 }, { status: 429 });
+  };
+  await assert.rejects(requestAnswer(question.messages as { role: 'user'; content: string }[], new AbortController().signal), (error: unknown) => {
+    assert.ok(error instanceof AssistantRequestError);
+    assert.equal(error.code, 'provider_rate_limit');
+    assert.equal(error.retryAfterSeconds, 18);
+    return true;
+  });
+  assert.equal(calls, 1);
+});
+
+test('the application burst limit supplies its actual reset time', async () => {
+  process.env.GROQ_API_KEY = 'test-placeholder-not-a-real-key';
+  let calls = 0;
+  globalThis.fetch = async () => { calls++; return Response.json({ choices: [{ message: { content: 'Hello.' } }] }); };
+  const sameCaller = () => {
+    const item = request({ messages: [{ role: 'user', content: 'Hello' }] });
+    item.headers.set('x-forwarded-for', 'glass-burst-timer-test');
+    return item;
+  };
+  for (let index = 0; index < 10; index++) assert.equal((await chat(sameCaller())).status, 200);
+  const response = await chat(sameCaller());
+  assert.equal(response.status, 429);
+  const body = await response.json();
+  assert.equal(body.code, 'local_rate_limit');
+  assert.ok(body.retryAfterSeconds > 0 && body.retryAfterSeconds <= 60);
+  assert.equal(Number(response.headers.get('Retry-After')), body.retryAfterSeconds);
+  assert.equal(calls, 10);
+});
+
+test('a voice quota error preserves the spoken question and stops automatic listening', async () => {
+  const fake = fakeBrowser();
+  let calls = 0;
+  try {
+    globalThis.fetch = async () => {
+      calls++;
+      return Response.json({ error: 'Usage limit reached', code: 'provider_rate_limit', retryAfterSeconds: 30 }, { status: 429 });
+    };
+    fake.voice.start();
+    fake.recognizers[0].final('What is the latest news?');
+    await settle();
+    await new Promise(resolve => setTimeout(resolve, 300));
+    assert.deepEqual(fake.messages, ['What is the latest news?']);
+    assert.deepEqual(fake.retryTimes, [30]);
+    assert.equal(fake.phases.at(-1), 'idle');
+    assert.equal(fake.recognizers.length, 1);
+    assert.equal(fake.spoken.length, 0);
+    assert.equal(calls, 1);
+  } finally { fake.voice.stop(); }
 });

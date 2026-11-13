@@ -11,25 +11,23 @@ export function Hero() {
   const section = useRef<HTMLElement>(null);
   const reduced = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: section, offset: ["start start", "end start"] });
-  const textY = useTransform(scrollYProgress, [0, 1], [0, -100]);
-  const textOpacity = useTransform(scrollYProgress, [0, .65, 1], [1, .8, 0]);
-
-  return (
-    <section id="home" ref={section} className="hero spatial-hero">
-      <BackgroundVideo />
-      <div className="hero-coordinate" aria-hidden="true"><span>PORTFOLIO / 2026</span><span>20.93° N — 77.75° E</span></div>
-      <div className="hero-inner section-shell">
-        <div className="hero-topline"><span><i />Open to meaningful collaborations</span><span>Amravati, India</span></div>
-        <motion.div className="hero-copy" style={{ y: reduced ? 0 : textY, opacity: reduced ? 1 : textOpacity }}>
-          <p className="eyebrow">Viraj Patil <span>/</span> Developer & engineer</p>
-          <h1><span>Code with</span><em>character.</em><span className="hero-title-star" aria-hidden="true">✳</span></h1>
-          <div className="hero-copy-bottom"><p className="hero-description">A curious mind. A hands-on builder.<br />I make systems that see, think,<br className="desktop-break" /> and feel a little more human.</p>
-            <div className="hero-actions"><MagneticLink className="button button-primary" href="#works">Enter the work<ArrowIcon /></MagneticLink><AssistantTrigger className="button hero-voice"><MicIcon />Talk to NOVA</AssistantTrigger></div>
-          </div>
-        </motion.div>
-        <div className="hero-bottom"><span>AI SYSTEMS / DIGITAL COMMERCE / COMPUTER VISION</span><a className="scroll-cue" href="#works"><span className="scroll-track" aria-hidden="true" />Scroll into the work<ArrowIcon width={14} /></a></div>
+  const textY = useTransform(scrollYProgress, [0, 1], [0, -65]);
+  return <section id="home" ref={section} className="hero spatial-hero identity-hero">
+    <BackgroundVideo />
+    <div className="identity-aurora" aria-hidden="true" />
+    <div className="hero-inner section-shell">
+      <div className="hero-topline"><span><i />Available for technical opportunities</span><span>Based in India</span></div>
+      <motion.div className="hero-copy identity-copy" style={{ y: reduced ? 0 : textY }}>
+        <p className="eyebrow">Developer. Engineer. Endlessly curious.</p>
+        <h1 className="identity-name"><span>VIRAJ</span><em>PATIL<span className="identity-period">.</span></em></h1>
+        <div className="identity-caption"><span className="identity-spark" aria-hidden="true">&#10035;</span><p>A human behind the code.<br /><strong>A little character in everything I build.</strong></p></div>
+      </motion.div>
+      <div className="identity-footer glass-panel">
+        <p>I turn ideas into systems<br />that <em>see, think &amp; connect.</em></p>
+        <div className="identity-disciplines"><span>01 / Applied AI</span><span>02 / Digital products</span><span>03 / Computer vision</span></div>
+        <div className="hero-actions"><MagneticLink className="button button-primary" href="#works">Explore my work<ArrowIcon /></MagneticLink><AssistantTrigger className="button hero-voice"><MicIcon />Talk to NOVA</AssistantTrigger></div>
       </div>
-      <span className="hero-side-note" aria-hidden="true">CURIOSITY IS THE STARTING POINT</span>
-    </section>
-  );
+      <div className="hero-bottom"><span>VIRAJ PATIL / SELECTED WORK</span><a className="scroll-cue" href="#works"><span className="scroll-track" aria-hidden="true" />Scroll to explore<ArrowIcon width={14} /></a></div>
+    </div>
+  </section>;
 }

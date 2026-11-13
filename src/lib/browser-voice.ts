@@ -1,4 +1,4 @@
-import { conversationWindow, requestAnswer, type ChatMessage } from './assistant-client';
+import { AssistantRequestError, conversationWindow, requestAnswer, type ChatMessage } from './assistant-client';
 import type { LinkCard } from './portfolio-knowledge';
 import type { WebLookup } from './web-access';
 
@@ -27,7 +27,7 @@ type Callbacks = {
   phase(value: VoicePhase): void;
   message(id: string, role: 'user' | 'assistant', text: string, append: boolean): void;
   links(cards: LinkCard[]): void;
-  error(message: string): void;
+  error(message: string, retryAfterSeconds?: number): void;
   level(value: number): void;
   playbackBlocked(value: boolean): void;
   web?(id: string, lookup: WebLookup): void;
@@ -163,8 +163,9 @@ export class BrowserVoice {
       this.speak(result.text, turn);
     } catch (error) {
       if (this.stopped || turn !== this.generation || controller.signal.aborted) return;
-      this.callbacks.error(error instanceof Error ? error.message : 'The assistant could not answer. Please try again.');
-      this.resumeListening();
+      this.callbacks.error(error instanceof Error ? error.message : 'The assistant could not answer. Please try again.', error instanceof AssistantRequestError ? error.retryAfterSeconds : undefined);
+      if (error instanceof AssistantRequestError && (error.code === 'provider_rate_limit' || error.code === 'local_rate_limit')) this.stop();
+      else this.resumeListening();
     } finally {
       if (this.request === controller) this.request = null;
     }

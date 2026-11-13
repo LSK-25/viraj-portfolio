@@ -3,7 +3,7 @@
 import { Component, useEffect, useRef, type ReactNode, type RefObject } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { type MotionValue } from "motion/react";
-import { Group, MathUtils, PMREMGenerator } from "three";
+import { Group, MathUtils, PMREMGenerator, type WebGLRenderTarget } from "three";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { BilliModel, NovaModel, SadafuliModel, SentinelModel } from "./ProjectModels";
 import type { GalleryInteraction } from "./types";
@@ -35,16 +35,26 @@ function Lighting({ onFailure }: { onFailure: () => void }) {
     // Three.js scene objects are mutable renderer resources, outside React state.
     const { gl, scene } = getState();
     const room = new RoomEnvironment();
-    const generator = new PMREMGenerator(gl);
-    const target = generator.fromScene(room, .06);
     const previous = scene.environment;
-    scene.environment = target.texture;
-    scene.environmentIntensity = 1.35;
-    room.dispose();
-    generator.dispose();
+    const previousIntensity = scene.environmentIntensity;
+    let generator: PMREMGenerator | undefined;
+    let target: WebGLRenderTarget | undefined;
+    try {
+      generator = new PMREMGenerator(gl);
+      target = generator.fromScene(room, .06);
+      scene.environment = target.texture;
+      scene.environmentIntensity = 1.35;
+    } catch {
+      // Some devices cannot allocate the reflection map. Direct lights still
+      // render the models; the optional reflection must not disable the gallery.
+      scene.environment = previous;
+    } finally {
+      room.dispose();
+      generator?.dispose();
+    }
     const lost = (event: Event) => { event.preventDefault(); onFailure(); };
     gl.domElement.addEventListener("webglcontextlost", lost);
-    return () => { gl.domElement.removeEventListener("webglcontextlost", lost); scene.environment = previous; target.dispose(); };
+    return () => { gl.domElement.removeEventListener("webglcontextlost", lost); scene.environment = previous; scene.environmentIntensity = previousIntensity; target?.dispose(); };
   }, [getState, onFailure]);
   return <><ambientLight intensity={.6} /><directionalLight position={[3, 6, 5]} intensity={3} color="#fff0e2" /><directionalLight position={[-5, 1, 3]} intensity={2.5} color="#b77595" /><directionalLight position={[1, -4, 2]} intensity={.8} color="#b0c9d1" /></>;
 }
@@ -54,7 +64,7 @@ function CameraTravel({ progress, interaction, paused }: Pick<Props, "progress" 
   useFrame(({ camera, size }, delta) => {
     const p = progress.get();
     const mobile = size.width < 620;
-    const targetZ = (mobile ? 13 : 11) - p * 20;
+    const targetZ = (mobile ? 12 : 11) + Math.sin(p * Math.PI) * .4;
     const input = interaction.current;
     const x = paused ? 0 : input.x * .35 + Math.sin(p * Math.PI * 2) * .7;
     const y = paused ? 0 : -input.y * .25 + Math.sin(p * Math.PI) * .3;
@@ -75,12 +85,10 @@ function ChapterWorld({ index, progress, interaction, paused }: { index: number 
   useFrame((_, delta) => {
     if (!paused) time.current += Math.min(delta, .05);
     if (world.current) {
-      const distance = progress.get() - index;
-      world.current.visible = Math.abs(distance) < 1.05;
-      // Exit to the side before the camera reaches the object, avoiding a
-      // full-screen collision while travelling to the next chapter.
-      world.current.position.x = Math.max(0, distance) ** 2 * 24;
-      world.current.position.y = Math.sin(Math.min(1, Math.max(0, distance)) * Math.PI) * .75;
+      const distance = index - progress.get();
+      world.current.visible = Math.abs(distance) < 1.2;
+      world.current.position.set(distance * 8.5, Math.sin(distance * Math.PI) * .3, -Math.abs(distance) * 4);
+      world.current.rotation.z = distance * -.04;
     }
     if (object.current) {
       object.current.position.y = Math.sin(time.current * .55 + index) * .12;
@@ -89,14 +97,14 @@ function ChapterWorld({ index, progress, interaction, paused }: { index: number 
       object.current.rotation.x = MathUtils.damp(object.current.rotation.x, paused ? 0 : -interaction.current.y * .045, 5, delta);
     }
   });
-  return <group ref={world} position={[0, 0, -index * 20]}><group ref={object}><Model paused={paused} /></group></group>;
+  return <group ref={world} position={[index * 8.5, 0, -index * 4]}><group ref={object}><Model paused={paused} /></group></group>;
 }
 
 export default function ProjectWorld(props: Props) {
   return <SceneBoundary onFailure={props.onFailure}><Canvas
     camera={{ position: [0, 0, 11], fov: 44, near: .1, far: 85 }}
     dpr={[1, 1.5]}
-    gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+    gl={{ antialias: true, alpha: true, powerPreference: "default" }}
     frameloop={props.running ? "always" : "demand"}
     fallback={<Unavailable onFailure={props.onFailure} />}
     onCreated={({ gl }) => { gl.setClearColor("#0b0b0c", 0); props.onReady(); }}

@@ -1,15 +1,22 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useRef, useState, type PointerEvent, type CSSProperties } from "react";
+import { Component, useCallback, useEffect, useRef, useState, type ReactNode, type PointerEvent, type CSSProperties } from "react";
 import { useMotionValue } from "motion/react";
 import { projects } from "@/data/site";
 import { ArrowIcon } from "@/components/ui/Icons";
 import { AssistantTrigger } from "@/components/assistant/AssistantTrigger";
 import { ProjectVisual } from "./ProjectVisual";
+import { ProjectSculpture } from "@/components/spatial/ProjectSculpture";
 import type { GalleryInteraction } from "@/components/spatial/types";
 
 const ProjectWorld = dynamic(() => import("@/components/spatial/ProjectWorld"), { ssr: false });
+class ViewerBoundary extends Component<{ children: ReactNode; onFailure: () => void }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() { return { failed: true }; }
+  componentDidCatch() { this.props.onFailure(); }
+  render() { return this.state.failed ? null : this.props.children; }
+}
 const accents = ["#c887a2", "#eda7bb", "#d6bd9a", "#a4c3bd"];
 const chapterWords = ["A little more human.", "Details with personality.", "Tradition, reimagined.", "See the signal."];
 
@@ -24,18 +31,17 @@ export function Works() {
   const [paused, setPaused] = useState(false);
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   const handleReady = useCallback(() => setReady(true), []);
-  const handleFailure = useCallback(() => { setFailed(true); setMode("index"); }, []);
+  const handleFailure = useCallback(() => { setFailed(true); setReady(false); }, []);
 
   useEffect(() => {
     const element = section.current;
     if (!element) return;
     const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const compactViewport = window.matchMedia("(max-height: 630px), (max-width: 760px) and (max-height: 690px)");
-    const updatePreference = () => { if (motionPreference.matches || compactViewport.matches) { setMode("index"); setPaused(true); } };
+    const updatePreference = () => { if (motionPreference.matches) { setMode("index"); setPaused(true); } };
     updatePreference();
     motionPreference.addEventListener("change", updatePreference);
-    compactViewport.addEventListener("change", updatePreference);
     const preload = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) setNear(true); }, { rootMargin: "600px" });
     let inView = false;
     const updateVisibility = () => setRunning(inView && !document.hidden);
@@ -43,7 +49,7 @@ export function Works() {
     preload.observe(element);
     visibility.observe(element);
     document.addEventListener("visibilitychange", updateVisibility);
-    return () => { preload.disconnect(); visibility.disconnect(); motionPreference.removeEventListener("change", updatePreference); compactViewport.removeEventListener("change", updatePreference); document.removeEventListener("visibilitychange", updateVisibility); };
+    return () => { preload.disconnect(); visibility.disconnect(); motionPreference.removeEventListener("change", updatePreference); document.removeEventListener("visibilitychange", updateVisibility); };
   }, []);
 
   useEffect(() => {
@@ -65,6 +71,14 @@ export function Works() {
     return () => { cancelAnimationFrame(frame); window.removeEventListener("scroll", schedule); window.removeEventListener("resize", schedule); };
   }, [mode, progress]);
 
+  useEffect(() => {
+    if (!near || mode !== "spatial" || ready || failed) return;
+    const timer = window.setTimeout(handleFailure, 12_000);
+    return () => window.clearTimeout(timer);
+  }, [near, mode, ready, failed, attempt, handleFailure]);
+
+  function retryScene() { setFailed(false); setReady(false); setNear(true); setAttempt(value => value + 1); }
+
   function goTo(index: number) {
     const element = section.current;
     if (!element) return;
@@ -73,6 +87,8 @@ export function Works() {
   }
 
   function changeMode() {
+    setNear(true);
+    setReady(false);
     setMode(current => current === "spatial" ? "index" : "spatial");
     requestAnimationFrame(() => section.current?.scrollIntoView({ behavior: "instant", block: "start" }));
   }
@@ -84,10 +100,12 @@ export function Works() {
     if (interaction.current.dragging) interaction.current.rotation += (next - interaction.current.x) * 3;
     interaction.current.x = next;
     interaction.current.y = (event.clientY - rect.top) / rect.height * 2 - 1;
+    event.currentTarget.style.setProperty("--sculpture-turn", `${interaction.current.rotation * 40 + next * 9}deg`);
+    event.currentTarget.style.setProperty("--sculpture-tilt", `${-interaction.current.y * 7}deg`);
   }
 
   function startDrag(event: PointerEvent<HTMLDivElement>) {
-    if (event.pointerType !== "mouse" || !(event.target instanceof HTMLCanvasElement)) return;
+    if (event.pointerType !== "mouse" || !(event.target instanceof HTMLCanvasElement || event.target instanceof Element && event.target.closest(".fallback-model"))) return;
     interaction.current.dragging = true;
     event.currentTarget.setPointerCapture(event.pointerId);
   }
@@ -99,12 +117,13 @@ export function Works() {
         <div className="work-stage" onPointerMove={move} onPointerDown={startDrag} onPointerUp={() => { interaction.current.dragging = false; }} onPointerCancel={() => { interaction.current.dragging = false; }} onPointerLeave={() => { if (!interaction.current.dragging) { interaction.current.x = 0; interaction.current.y = 0; } }}>
           <div className="gallery-grid" aria-hidden="true" />
           <div className="gallery-horizon" aria-hidden="true" />
-          <div className="gallery-toolbar"><span className="gallery-label"><i />Selected work <b>/ 2026</b></span><div>{mode === "spatial" && <button type="button" onClick={() => setPaused(value => !value)} aria-pressed={paused}>{paused ? "Resume motion" : "Pause motion"}<span aria-hidden="true">{paused ? "▷" : "Ⅱ"}</span></button>}<button type="button" onClick={changeMode} disabled={failed} aria-label={mode === "spatial" ? "Switch to project index" : "Switch to 3D project gallery"}>{mode === "spatial" ? "Index view" : "3D view"}<span aria-hidden="true">{mode === "spatial" ? "☷" : "◇"}</span></button></div></div>
+          <div className="gallery-toolbar"><span className="gallery-label"><i />Selected work <b>/ 2026</b></span><div>{mode === "spatial" && <button type="button" onClick={() => setPaused(value => !value)} aria-pressed={paused}>{paused ? "Resume motion" : "Pause motion"}<span aria-hidden="true">{paused ? "▷" : "Ⅱ"}</span></button>}<button type="button" onClick={changeMode} aria-label={mode === "spatial" ? "Switch to project index" : "Switch to 3D project gallery"}>{mode === "spatial" ? "Index view" : "3D view"}<span aria-hidden="true">{mode === "spatial" ? "☷" : "◇"}</span></button></div></div>
           {mode === "spatial" && <>
-            <div className={`gallery-canvas ${ready ? "is-ready" : ""}`} aria-hidden="true">
-              {!ready && <div className="world-placeholder"><span>NOVA</span><div className="placeholder-orbit" /><small>Opening the gallery</small></div>}
-              {near && <ProjectWorld progress={progress} interaction={interaction} running={running} paused={paused} onReady={handleReady} onFailure={handleFailure} />}
+            <div className={`gallery-canvas ${ready || failed ? "is-ready" : ""}`} aria-hidden="true">
+              {!ready && !failed && <div className="world-placeholder"><span>NOVA</span><div className="placeholder-orbit" /><small>Opening the gallery</small></div>}
+              {failed ? <div className={`fallback-model ${paused ? "is-paused" : ""}`}><ProjectSculpture id={projects[active].id} className="gallery-fallback-sculpture" /></div> : near && <ViewerBoundary key={attempt} onFailure={handleFailure}><ProjectWorld progress={progress} interaction={interaction} running={running} paused={paused} onReady={handleReady} onFailure={handleFailure} /></ViewerBoundary>}
             </div>
+            {failed && <div className="gallery-recovery"><span>Lightweight 3D is active</span><button type="button" onClick={retryScene}>Retry full 3D</button></div>}
             <span className="world-watermark" aria-hidden="true">{projects[active].number}</span>
             <div className="gallery-editorial" aria-live="polite" aria-atomic="true">{projects.map((project, index) => <article key={project.id} className={`project-chapter ${active === index ? "is-active" : ""}`} aria-hidden={active !== index} inert={active !== index}>
               <div className="chapter-meta"><span>{project.number} — {project.category}</span><span>{project.status}</span></div>

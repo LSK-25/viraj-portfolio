@@ -11,9 +11,11 @@ export function needsWebSearch(messages: Turn[], force = false): boolean {
   const query = users.at(-1)?.content || '';
   if (explicit.test(query)) return true;
   // Portfolio status comes from the owner's verified record, not a public search.
-  if (/\b(?:viraj|your projects?|nova|ada|sadafuli|billi|sentinel|portfolio)\b/i.test(query) && !/\b(?:news|search|online|internet|external)\b/i.test(query)) return false;
+  if (/\b(?:viraj|your projects?|(?:nova|ada) (?:project|prototype|status)|sadafuli|billi|sentinel|portfolio)\b/i.test(query) && !/\b(?:news|search|online|internet|external)\b/i.test(query)) return false;
   if (freshness.test(query)) return true;
-  return query.length < 180 && /^(?:and |what about |how about |also |any more|tell me more|sources\b|links\b)/i.test(query.trim()) && freshness.test(users.at(-2)?.content || '');
+  if (/https?:\/\//i.test(query) || /\b(?:what(?:'s| is) happening|news roundup|headlines|who won|has .+ (?:released|launched))\b/i.test(query)) return true;
+  if (/\b20[2-9]\d\b/.test(query) && /\b(?:news|events|summary|results|released|launched|announced|won|election)\b/i.test(query)) return true;
+  return query.length < 180 && /^(?:and |what about |how about |also |any more|tell me more|sources\b|links\b)/i.test(query.trim()) && users.slice(-4, -1).some(turn => freshness.test(turn.content));
 }
 
 export function publicSourceUrl(value: unknown): string | null {

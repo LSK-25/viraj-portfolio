@@ -1,5 +1,6 @@
 "use client";
 
+import { EraseText } from "@/components/ui/EraseText";
 import { useRef } from "react";
 import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { AssistantTrigger } from "@/components/assistant/AssistantTrigger";
@@ -19,7 +20,7 @@ export function Hero() {
       <div className="hero-topline"><span><i />Available for technical opportunities</span><span>Based in India</span></div>
       <motion.div className="hero-copy identity-copy" style={{ y: reduced ? 0 : textY }}>
         <p className="eyebrow">Developer. Engineer. Endlessly curious.</p>
-        <h1 className="identity-name"><span>VIRAJ</span><em>PATIL<span className="identity-period">.</span></em></h1>
+        <h1 className="identity-name"><span><EraseText lines={["VIRAJ"]} /></span><em><EraseText lines={["PATIL"]} /><span className="identity-period">.</span></em></h1>
         <div className="identity-caption"><span className="identity-spark" aria-hidden="true">&#10035;</span><p>A human behind the code.<br /><strong>A little character in everything I build.</strong></p></div>
       </motion.div>
       <div className="identity-footer glass-panel">

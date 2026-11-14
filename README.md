@@ -14,7 +14,9 @@ after this source is deployed to its existing Vercel project.
   hero, gallery, about section and contact section.
 - Four illustrated project cards replace the plain case-file rows. Each has
   original dimensional artwork and expands to reveal the actual challenge,
-  approach, outcome, stack and links. Headings no longer erase their letters.
+  approach, outcome, stack and links. The neon cursor erases heading letters temporarily; they return automatically.
+  The footer credit is removed, leaving only Built with curiosity. The effect also
+  works on that footer text, and stays disabled for touch/reduced-motion visitors.
 - The Three.js gallery has a recoverable loading/error state. A failed graphics
   context shows a CSS dimensional illustration, with Retry full 3D available.
   The 3D-view button is never permanently disabled after a graphics failure.

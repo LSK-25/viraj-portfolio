@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { motion, useReducedMotion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
+import { useReducedMotion } from "motion/react";
 
 type EraseTextProps = {
   lines: string[];
@@ -9,135 +9,38 @@ type EraseTextProps = {
   restoreDelay?: number;
 };
 
-type LetterData = {
-  char: string;
-  key: string;
-  index: number;
-};
-
-export function EraseText({
-  lines,
-  className = "",
-  restoreDelay = 3000,
-}: EraseTextProps) {
+export function EraseText({ lines, className = "", restoreDelay = 1400 }: EraseTextProps) {
   const reducedMotion = useReducedMotion();
-  const [erasedLetters, setErasedLetters] = useState<Set<number>>(new Set());
-  const timersRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
-
-  const preparedLines = useMemo(() => {
-    return lines.map((line, lineIndex) =>
-      line.split("").map((char, charIndex): LetterData => {
-        return {
-          char,
-          key: `${lineIndex}-${charIndex}`,
-          index: lineIndex * 1000 + charIndex,
-        };
-      }),
-    );
-  }, [lines]);
-
-  function eraseLetter(index: number, isSpace: boolean) {
-    if (isSpace || reducedMotion) return;
-
-    setErasedLetters((previous) => {
-      const next = new Set(previous);
-      next.add(index);
-      return next;
-    });
-
-    if (timersRef.current[index]) {
-      clearTimeout(timersRef.current[index]);
-    }
-
-    timersRef.current[index] = setTimeout(() => {
-      setErasedLetters((previous) => {
-        const next = new Set(previous);
-        next.delete(index);
-        return next;
-      });
-
-      delete timersRef.current[index];
-    }, restoreDelay);
-  }
+  const [erased, setErased] = useState<Set<string>>(new Set());
+  const timers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
 
   useEffect(() => {
-    const timers = timersRef.current;
-    return () => {
-      Object.values(timers).forEach((timer) => {
-        clearTimeout(timer);
-      });
-    };
+    const pending = timers.current;
+    return () => { pending.forEach(clearTimeout); pending.clear(); };
   }, []);
 
-  return (
-    <span className={`erase-text ${className}`}>
-      <span className="sr-only">{lines.join(' ')}</span>
-      <span aria-hidden="true">
-      {preparedLines.map((line, lineIndex) => (
-        <span key={lineIndex} className="block overflow-visible whitespace-nowrap">
-          {line.map((letter) => {
-            const isSpace = letter.char === " ";
-            const isErased = erasedLetters.has(letter.index);
+  function erase(key: string, pointerType: string) {
+    if (pointerType !== "mouse" || reducedMotion || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    setErased(previous => previous.has(key) ? previous : new Set(previous).add(key));
+    const previous = timers.current.get(key);
+    if (previous) clearTimeout(previous);
+    timers.current.set(key, setTimeout(() => {
+      setErased(current => { const next = new Set(current); next.delete(key); return next; });
+      timers.current.delete(key);
+    }, restoreDelay));
+  }
 
-            return (
-              <motion.span
-                key={letter.key}
-                onPointerEnter={event => {if(event.pointerType === 'mouse') eraseLetter(letter.index, isSpace);}}
-                className="relative inline-block whitespace-pre"
-                animate={
-                  isErased && !reducedMotion
-                    ? {
-                        opacity: 0,
-                        scale: 0.35,
-                        y: -18,
-                        filter: "blur(12px)",
-                      }
-                    : {
-                        opacity: 1,
-                        scale: 1,
-                        y: 0,
-                        filter: "blur(0px)",
-                      }
-                }
-                transition={{
-                  duration: reducedMotion ? 0 : isErased ? 0.18 : 0.65,
-                  ease: [0.22, 1, 0.36, 1],
-                }}
-              >
-                {isSpace ? "\u00A0" : letter.char}
-
-                {!isSpace && (
-                  <motion.span
-                    className="pointer-events-none absolute left-1/2 top-1/2 h-1.5 w-1.5 rounded-full bg-white"
-                    animate={
-                      isErased
-                        ? {
-                            opacity: [0, 1, 0],
-                            scale: [0, 1.8, 0],
-                            x: "-50%",
-                            y: "-50%",
-                            boxShadow: [
-                              "0 0 0px rgba(255,255,255,0)",
-                              "0 0 22px rgba(255,255,255,0.95)",
-                              "0 0 0px rgba(255,255,255,0)",
-                            ],
-                          }
-                        : {
-                            opacity: 0,
-                            scale: 0,
-                            x: "-50%",
-                            y: "-50%",
-                          }
-                    }
-                    transition={{ duration: 0.35, ease: "easeOut" }}
-                  />
-                )}
-              </motion.span>
-            );
-          })}
-        </span>
-      ))}
-      </span>
-    </span>
-  );
+  return <span className={`erase-text ${lines.length === 1 ? "erase-single" : ""} ${className}`}>
+    <span className="sr-only">{lines.join(" ")}</span>
+    <span aria-hidden="true">{lines.map((line, lineIndex) => <span className="erase-line" key={lineIndex}>
+      {line.split(/(\s+)/).map((word, wordIndex) => /^\s+$/.test(word) ? word : <span className="erase-word" key={wordIndex}>
+        {Array.from(word).map((character, index) => {
+          const key = `${lineIndex}-${wordIndex}-${index}`;
+          return <span key={key} className="erase-letter" onPointerEnter={event => erase(key, event.pointerType)} onPointerMove={event => erase(key, event.pointerType)}>
+            <span className={`erase-ink ${erased.has(key) && !reducedMotion ? "is-erased" : ""}`}>{character}</span>
+          </span>;
+        })}
+      </span>)}
+    </span>)}</span>
+  </span>;
 }

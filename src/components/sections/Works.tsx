@@ -1,5 +1,6 @@
 "use client";
 
+import { EraseText } from "@/components/ui/EraseText";
 import dynamic from "next/dynamic";
 import { Component, useCallback, useEffect, useRef, useState, type ReactNode, type PointerEvent, type CSSProperties } from "react";
 import { useMotionValue } from "motion/react";
@@ -112,7 +113,7 @@ export function Works() {
 
   return (
     <>
-      <div className="work-prologue section-shell" data-reveal><p className="eyebrow">01 / Selected work</p><h2>Different ideas.<br /><em>New dimensions.</em></h2><div className="prologue-note"><span className="orbit-symbol" aria-hidden="true">↗</span><p>Four projects. Each with a world of its own.<br />Scroll to travel. Stop to explore.</p></div></div>
+      <div className="work-prologue section-shell" data-reveal><p className="eyebrow">01 / Selected work</p><h2><EraseText lines={["Different ideas."]} /><br /><em><EraseText lines={["New dimensions."]} /></em></h2><div className="prologue-note"><span className="orbit-symbol" aria-hidden="true">↗</span><p>Four projects. Each with a world of its own.<br />Scroll to travel. Stop to explore.</p></div></div>
       <section id="works" ref={section} className={`spatial-work ${mode === "index" ? "is-index" : "is-spatial"}`} aria-label="Selected projects" style={{ "--chapter-accent": accents[active] } as CSSProperties}>
         <div className="work-stage" onPointerMove={move} onPointerDown={startDrag} onPointerUp={() => { interaction.current.dragging = false; }} onPointerCancel={() => { interaction.current.dragging = false; }} onPointerLeave={() => { if (!interaction.current.dragging) { interaction.current.x = 0; interaction.current.y = 0; } }}>
           <div className="gallery-grid" aria-hidden="true" />

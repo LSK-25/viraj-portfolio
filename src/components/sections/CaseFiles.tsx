@@ -1,3 +1,4 @@
+import { EraseText } from "@/components/ui/EraseText";
 import { projects } from '@/data/site';
 import { AssistantTrigger } from '@/components/assistant/AssistantTrigger';
 import { ArrowIcon } from '@/components/ui/Icons';
@@ -8,7 +9,7 @@ const flows = [['LISTEN', 'UNDERSTAND', 'RESPOND'], ['DISCOVER', 'PERSONALISE', 
 
 export function CaseFiles() {
   return <section id="case-files" className="section-shell section-space case-studio">
-    <div className="section-heading" data-reveal><div><p className="eyebrow">03 / Inside the ideas</p><h2>Built with intention.<br /><em>Made to be explored.</em></h2></div><p>The problem, the decisions,<br />and the details that made it work.</p></div>
+    <div className="section-heading" data-reveal><div><p className="eyebrow">03 / Inside the ideas</p><h2><EraseText lines={["Built with intention."]} /><br /><em><EraseText lines={["Made to be explored."]} /></em></h2></div><p>The problem, the decisions,<br />and the details that made it work.</p></div>
     <div className="case-studio-grid">{projects.map((project, index) => <details id={`case-${project.id}`} className={`case-file case-glass-card case-${project.id}`} key={project.id}>
       <summary>
         <span className="case-card-top"><span>{project.number} / {project.category}</span><span className="case-card-status">{project.status}</span></span>

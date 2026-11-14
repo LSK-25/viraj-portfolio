@@ -29,6 +29,12 @@ function Unavailable({ onFailure }: { onFailure: () => void }) {
   return null;
 }
 
+function SceneReady({ onReady }: { onReady: () => void }) {
+  // This mounts after the artwork textures resolve inside Canvas's Suspense.
+  useEffect(onReady, [onReady]);
+  return null;
+}
+
 function Lighting({ onFailure }: { onFailure: () => void }) {
   const getState = useThree(state => state.get);
   useEffect(() => {
@@ -107,12 +113,13 @@ export default function ProjectWorld(props: Props) {
     gl={{ antialias: true, alpha: true, powerPreference: "default" }}
     frameloop={props.running ? "always" : "demand"}
     fallback={<Unavailable onFailure={props.onFailure} />}
-    onCreated={({ gl }) => { gl.setClearColor("#0b0b0c", 0); props.onReady(); }}
+    onCreated={({ gl }) => { gl.setClearColor("#0b0b0c", 0); }}
     style={{ touchAction: "pan-y" }}
   >
     <fog attach="fog" args={["#0b0b0c", 15, 35]} />
     <Lighting onFailure={props.onFailure} />
     <CameraTravel {...props} />
     {[0, 1, 2, 3].map(index => <ChapterWorld key={index} index={index} {...props} />)}
+    <SceneReady onReady={props.onReady} />
   </Canvas></SceneBoundary>;
 }

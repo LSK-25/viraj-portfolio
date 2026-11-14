@@ -4,7 +4,25 @@ Updated source for the existing portfolio at https://viraj-portfolio-mu.vercel.a
 This package has not been pushed or deployed. The running website changes only
 after this source is deployed to its existing Vercel project.
 
-## This revision: glass studio
+## This revision: studio artwork
+
+- Removed the decorative period after PATIL, including the name wordmarks.
+- Replaced the basic CSS nail shapes, metal-sheet textile and cartoon camera with
+  four original studio artworks: a glass/metal NOVA companion, a styled nail-art
+  collection, woven saree silk and a computer-vision/lens study.
+- The same detailed artwork appears in the main gallery, project cards and index.
+  It is generated concept artwork, not photographs of shipped hardware, actual
+  client inventory or screenshots of the live client sites.
+- The CSS gallery is visible immediately and while WebGL textures load. Supported
+  devices get interactive framed artwork in Three.js. If graphics are unavailable,
+  the studio artwork remains usable with pointer tilt and chapter navigation.
+  A Try interactive 3D control lets the visitor retry. No blank loading screen.
+- Mouse rotation is bounded to keep the artwork facing the visitor. Pause motion,
+  keyboard chapter buttons and reduced-motion behavior are retained.
+- One local 2.24 MB image atlas supplies all four scenes; it adds no runtime image
+  API or external image-hosting dependency.
+
+## Earlier glass studio changes
 
 - VIRAJ PATIL is the oversized hero headline, and the full name is also in the
   navigation and footer. The public location is India.
@@ -18,11 +36,11 @@ after this source is deployed to its existing Vercel project.
   The footer credit is removed, leaving only Built with curiosity. The effect also
   works on that footer text, and stays disabled for touch/reduced-motion visitors.
 - The Three.js gallery has a recoverable loading/error state. A failed graphics
-  context shows a CSS dimensional illustration, with Retry full 3D available.
+  context retains the studio artwork, with Try interactive 3D available.
   The 3D-view button is never permanently disabled after a graphics failure.
   Optional reflection-map failure keeps the scene's direct lights working.
 - The camera stays in front of the artwork while chapters move between scenes.
-  Chapter buttons, mouse drag, Pause motion and Index view remain available.
+  Chapter buttons, mouse tilt, Pause motion and Index view remain available.
   Reduced motion starts in Index view; mobile users can choose either view.
 - NOVA has a much larger conversation area, a full-window expand control and a
   compact voice toolbar. Optional heartbeat/sound controls are collapsed.
@@ -165,7 +183,8 @@ The original documents and project links are included:
 The video is public/videos/leon-loop.mp4. Its supplied reference is
 https://www.youtube.com/watch?v=gTPsGjDC-gU. No portrait fallback is rendered.
 Inter and Inter Tight load locally from src/app/fonts. Generated project artwork
-is illustrative, not a screenshot of the live client websites.
+is illustrative, not a screenshot of the live client websites. The four-quadrant
+atlas is public/images/project-studies.png, mapped in src/data/project-art.ts.
 
 To rebuild the portfolio PDF after changing facts, install reportlab and run
 `python scripts/build_portfolio_pdf.py`. Embedded fonts and licenses are in
@@ -194,15 +213,17 @@ harness because the local tsx runner was unavailable. No production credentials
 were used. TypeScript, lint of the changed code/tests and the default Next.js
 production build (Turbopack) pass. Production HTTP checks verify the new identity,
 India location, four illustrated cards, NOVA controls, video, both PDFs, assistant
-status and cross-origin request rejection.
+status and cross-origin request rejection. This artwork revision also verifies
+the missing hero period, all four artwork bindings in the gallery/cards/index,
+the exact image bytes served, and unchanged assistant source files.
 
-A fresh interactive browser review was unavailable in this session. Device GPU
+The new artwork was visually reviewed. A fresh interactive browser review was unavailable in this session. Device GPU
 behavior, responsive appearance, audible playback and live Groq/news answers
 still need checking in the deployed browser. Mocked tests validate integration
 behavior and prompt contents, not a guarantee of model output or actual latency.
 
-After deployment, check the large name, glass cards and expansion, all four 3D
-chapters, drag/Pause/Index/Retry controls, mobile and reduced motion, project/CV
+After deployment, check the large name, glass cards and expansion, all four gallery
+chapters, tilt/Pause/Index/Retry controls, mobile and reduced motion, project/CV
 links, NOVA expand, normal chat, November news and source links, voice interrupt,
 heartbeat preview and closing the assistant.
 

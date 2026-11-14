@@ -1,3 +1,10 @@
-import type {Project} from '@/data/site';
-import {ArrowIcon} from '@/components/ui/Icons';
-export function ProjectVisual({project:p}:{project:Project}){return <a className={`project-visual visual-${p.id}`} href={`#case-${p.id}`} aria-label={`Read the ${p.title} case study`}>{p.id==='sadafuli'?<><div className="fabric"/><div className="brand-sadafuli"><span className="flower">✳</span><strong>sadafuli</strong><small>BY ISHA</small><em>Tradition, thoughtfully reimagined.</em></div><small className="visual-bottom">A SAREE STORY</small></>:p.id==='billi-boba'?<><i className="nail nail-one"/><i className="nail nail-two"/><i className="nail nail-three"/><div className="brand-billi"><strong>BILLi&BoBA</strong><small>NAILS, WITH PERSONALITY.</small></div><small className="visual-bottom">MADE FOR YOUR NEXT DETAIL</small></>:p.id==='sentinel'?<><small className="visual-top">SENTINEL / MONITORING INTERFACE</small><div className="vision-grid"/><div className="target-box"><span>PERSON DETECTION</span><i/></div><small className="visual-bottom">FRAME → DETECT → ALERT</small></>:<><small className="visual-top">NOVA / ADA · LOCAL VOICE</small><div className="brand-nova">A little more<br/><em>human.</em><div className="nova-wave">{Array.from({length:24},(_,i)=><i key={i} style={{height:8+Math.sin(i*.8)**2*34}}/>)}</div></div><small className="visual-bottom">LISTEN. UNDERSTAND. RESPOND.</small></>}<span className="visual-arrow"><ArrowIcon/></span></a>}
+import type { Project } from '@/data/site';
+import { ArrowIcon } from '@/components/ui/Icons';
+import { ProjectSculpture } from '@/components/spatial/ProjectSculpture';
+
+export function ProjectVisual({ project }: { project: Project }) {
+  return <a className={`project-visual visual-studio visual-${project.id}`} href={`#case-${project.id}`} aria-label={`Read the ${project.title} case study`}>
+    <ProjectSculpture id={project.id} />
+    <span className="visual-arrow"><ArrowIcon /></span>
+  </a>;
+}

@@ -13,7 +13,7 @@ export function CaseFiles() {
     <div className="case-studio-grid">{projects.map((project, index) => <details id={`case-${project.id}`} className={`case-file case-glass-card case-${project.id}`} key={project.id}>
       <summary>
         <span className="case-card-top"><span>{project.number} / {project.category}</span><span className="case-card-status">{project.status}</span></span>
-        <span className="case-card-art"><span className="case-art-label">{project.id === 'nova' ? 'A LITTLE MORE HUMAN' : project.id === 'billi-boba' ? 'MADE FOR YOUR NEXT DETAIL' : project.id === 'sadafuli' ? 'A MODERN INDIAN STORY' : 'SEE THE SIGNAL'}</span><ProjectSculpture id={project.id} /><span className="case-art-number">{project.number}</span></span>
+        <span className="case-card-art"><ProjectSculpture id={project.id} /></span>
         <span className="case-card-title"><span>{project.title}</span><span className="case-card-plus" aria-hidden="true">+</span></span>
         <span className="case-card-description">{themes[index]}</span>
         <span className="case-card-flow">{flows[index].map((word, wordIndex) => <span key={word}>{wordIndex > 0 && <i aria-hidden="true">&#8594;</i>}{word}</span>)}</span>

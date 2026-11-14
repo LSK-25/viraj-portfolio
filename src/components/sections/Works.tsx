@@ -98,11 +98,11 @@ export function Works() {
     if (event.pointerType !== "mouse") return;
     const rect = event.currentTarget.getBoundingClientRect();
     const next = (event.clientX - rect.left) / rect.width * 2 - 1;
-    if (interaction.current.dragging) interaction.current.rotation += (next - interaction.current.x) * 3;
+    if (interaction.current.dragging) interaction.current.rotation = Math.max(-.5, Math.min(.5, interaction.current.rotation + (next - interaction.current.x) * 3));
     interaction.current.x = next;
     interaction.current.y = (event.clientY - rect.top) / rect.height * 2 - 1;
-    event.currentTarget.style.setProperty("--sculpture-turn", `${interaction.current.rotation * 40 + next * 9}deg`);
-    event.currentTarget.style.setProperty("--sculpture-tilt", `${-interaction.current.y * 7}deg`);
+    event.currentTarget.style.setProperty("--sculpture-turn", `${Math.max(-14, Math.min(14, interaction.current.rotation * 25 + next * 4))}deg`);
+    event.currentTarget.style.setProperty("--sculpture-tilt", `${-interaction.current.y * 4}deg`);
   }
 
   function startDrag(event: PointerEvent<HTMLDivElement>) {
@@ -120,11 +120,13 @@ export function Works() {
           <div className="gallery-horizon" aria-hidden="true" />
           <div className="gallery-toolbar"><span className="gallery-label"><i />Selected work <b>/ 2026</b></span><div>{mode === "spatial" && <button type="button" onClick={() => setPaused(value => !value)} aria-pressed={paused}>{paused ? "Resume motion" : "Pause motion"}<span aria-hidden="true">{paused ? "▷" : "Ⅱ"}</span></button>}<button type="button" onClick={changeMode} aria-label={mode === "spatial" ? "Switch to project index" : "Switch to 3D project gallery"}>{mode === "spatial" ? "Index view" : "3D view"}<span aria-hidden="true">{mode === "spatial" ? "☷" : "◇"}</span></button></div></div>
           {mode === "spatial" && <>
-            <div className={`gallery-canvas ${ready || failed ? "is-ready" : ""}`} aria-hidden="true">
-              {!ready && !failed && <div className="world-placeholder"><span>NOVA</span><div className="placeholder-orbit" /><small>Opening the gallery</small></div>}
-              {failed ? <div className={`fallback-model ${paused ? "is-paused" : ""}`}><ProjectSculpture id={projects[active].id} className="gallery-fallback-sculpture" /></div> : near && <ViewerBoundary key={attempt} onFailure={handleFailure}><ProjectWorld progress={progress} interaction={interaction} running={running} paused={paused} onReady={handleReady} onFailure={handleFailure} /></ViewerBoundary>}
+            <div className="gallery-canvas is-ready studio-canvas" aria-hidden="true">
+              <div className={`fallback-model ${paused || !running ? "is-paused" : ""} ${ready && !failed ? "is-obscured" : ""}`}>
+                {projects.map((project, index) => <div key={project.id} className={`studio-slide ${active === index ? "is-active" : ""}`}><ProjectSculpture id={project.id} className="gallery-fallback-sculpture" /></div>)}
+              </div>
+              {!failed && near && <div className={`studio-webgl ${ready ? "is-loaded" : ""}`}><ViewerBoundary key={attempt} onFailure={handleFailure}><ProjectWorld progress={progress} interaction={interaction} running={running} paused={paused} onReady={handleReady} onFailure={handleFailure} /></ViewerBoundary></div>}
             </div>
-            {failed && <div className="gallery-recovery"><span>Lightweight 3D is active</span><button type="button" onClick={retryScene}>Retry full 3D</button></div>}
+            {failed && <div className="gallery-recovery"><span>Studio view</span><button type="button" onClick={retryScene}>Try interactive 3D</button></div>}
             <span className="world-watermark" aria-hidden="true">{projects[active].number}</span>
             <div className="gallery-editorial" aria-live="polite" aria-atomic="true">{projects.map((project, index) => <article key={project.id} className={`project-chapter ${active === index ? "is-active" : ""}`} aria-hidden={active !== index} inert={active !== index}>
               <div className="chapter-meta"><span>{project.number} — {project.category}</span><span>{project.status}</span></div>
@@ -132,7 +134,7 @@ export function Works() {
               <p className="chapter-stack">{project.stack.slice(0, 3).join(" / ")}</p>
               <div className="chapter-links"><a className="button button-primary" href={`#case-${project.id}`}>Explore project<ArrowIcon width={15} /></a>{project.href && <a className="text-link" href={project.href} target="_blank" rel="noopener noreferrer">{project.id === "nova" ? "GitHub" : "Live website"}<ArrowIcon width={14} /></a>}</div>
             </article>)}</div>
-            <div className="gallery-bottom"><nav className="chapter-navigation" aria-label="Project chapters">{projects.map((project, index) => <button key={project.id} type="button" onClick={() => goTo(index)} aria-label={`View ${project.title}`} aria-current={active === index ? "step" : undefined}><span>{project.number}</span><i /><b>{project.id === "billi-boba" ? "B&B" : project.id === "sadafuli" ? "Sadafuli" : project.id === "nova" ? "NOVA" : "Sentinel"}</b></button>)}</nav><p className="gallery-instruction"><span className="drag-hint">Move your cursor · Drag to turn</span><span>Scroll to discover <span aria-hidden="true">↓</span></span></p></div>
+            <div className="gallery-bottom"><nav className="chapter-navigation" aria-label="Project chapters">{projects.map((project, index) => <button key={project.id} type="button" onClick={() => goTo(index)} aria-label={`View ${project.title}`} aria-current={active === index ? "step" : undefined}><span>{project.number}</span><i /><b>{project.id === "billi-boba" ? "B&B" : project.id === "sadafuli" ? "Sadafuli" : project.id === "nova" ? "NOVA" : "Sentinel"}</b></button>)}</nav><p className="gallery-instruction"><span className="drag-hint">Move to explore · Drag to tilt</span><span>Scroll to discover <span aria-hidden="true">↓</span></span></p></div>
           </>}
           <div className="work-index section-shell">{projects.map(project => <article className="index-project" key={project.id}><ProjectVisual project={project} /><div><span className="eyebrow">{project.number} / {project.category}</span><h3>{project.title}</h3><p>{project.description}</p><div className="index-links"><a className="text-link" href={`#case-${project.id}`}>Explore project<ArrowIcon width={14} /></a>{project.href && <a className="text-link" href={project.href} target="_blank" rel="noopener noreferrer">{project.id === "nova" ? "GitHub" : "Live website"}<ArrowIcon width={14} /></a>}</div></div></article>)}</div>
         </div>

@@ -1,7 +1,9 @@
 import type { CSSProperties } from 'react';
+import { GlassesStudy } from './GlassesStudy';
 import { projectArt, projectArtAtlas } from '@/data/project-art';
 
 export function ProjectSculpture({ id, className = '' }: { id: string; className?: string }) {
+  if (id === 'smart-glasses') return <span className={`project-artwork artwork-smart-glasses ${className}`}><GlassesStudy /></span>;
   const artwork = projectArt.find(item => item.id === id) ?? projectArt[0];
   return <span className={`project-artwork artwork-${id} ${className}`} aria-hidden="true" style={{ '--art-accent': artwork.accent } as CSSProperties}>
     <span className="art-ambient" />

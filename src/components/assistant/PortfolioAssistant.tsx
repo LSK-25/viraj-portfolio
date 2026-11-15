@@ -41,6 +41,7 @@ export function PortfolioAssistant() {
 
   const close = useCallback(() => { voice.current?.stop(); voice.current = null; chatAbort.current?.abort(); statusAbort.current?.abort(); setBusy(false); setOpen(false); dialog.current?.close(); }, []);
   const show = useCallback((prompt?: string) => {
+    window.dispatchEvent(new Event('portfolio:assistant-opened'));
     if (!dialog.current?.open) dialog.current?.showModal();
     setOpen(true); setClock(Date.now()); setVoiceSupported(browserVoiceSupported()); if (prompt) setDraft(prompt);
     statusAbort.current?.abort();

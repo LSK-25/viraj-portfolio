@@ -39,8 +39,8 @@ test('resource requests resolve to actual files and project links', () => {
   assert.ok(cards.some(card => card.href === '/Viraj_Patil_Portfolio.pdf'));
 });
 
-test('the four selected projects retain their verified status', () => {
-  assert.deepEqual(lookupPortfolio('all projects').projects.map(project => project.id), ['nova', 'billi-boba', 'sadafuli', 'sentinel']);
+test('the selected projects retain their verified status', () => {
+  assert.deepEqual(lookupPortfolio('all projects').projects.map(project => project.id), ['nova', 'billi-boba', 'sadafuli', 'sentinel', 'smart-glasses']);
   assert.equal(lookupPortfolio('sentinel').projects[0].status, 'Working prototype');
   assert.match(assistantInstructions, /English only/);
   assert.match(assistantInstructions, /ONLY the verified portfolio record/);

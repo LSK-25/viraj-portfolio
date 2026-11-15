@@ -193,9 +193,10 @@ export class BrowserVoice {
     const utterance = this.utterance = new SpeechSynthesisUtterance(plain);
     utterance.lang = 'en-US';
     const voices = window.speechSynthesis.getVoices().filter(voice => voice.lang.startsWith('en'));
-    const selectedVoice = voices.find(voice => voice.localService) || voices[0];
+    const selectedVoice = voices.find(voice => voice.localService && /David|Mark|Daniel|Guy|George/i.test(voice.name)) || voices.find(voice => /David|Mark|Daniel|Guy|George/i.test(voice.name)) || voices.find(voice => voice.localService) || voices[0];
     if (selectedVoice) utterance.voice = selectedVoice;
     utterance.rate = 1;
+    utterance.pitch = .88;
     const current = () => !this.stopped && turn === this.generation && this.utterance === utterance;
     utterance.onstart = () => {
       if (!current()) return;

@@ -29,7 +29,7 @@ pdfmetrics.registerFontFamily('PortfolioSerif', normal='PortfolioSerif', italic=
 DATA = json.loads((ROOT / 'src/data/portfolio.json').read_text(encoding='utf-8'))
 OUT = ROOT / 'public/Viraj_Patil_Portfolio.pdf'
 W, H = 595.28, 841.89
-BLACK, TEXT, MUTED, WINE = map(HexColor, ['#0b0b0c', '#f1edf0', '#b2a8b2', '#cb8da7'])
+BLACK, TEXT, MUTED, WINE = map(HexColor, ['#0b100c', '#ece9df', '#a9b09d', '#c6b487'])
 c = canvas.Canvas(str(OUT), pagesize=(W, H))
 c.setTitle('Viraj Patil | Selected work & portfolio')
 c.setAuthor('Viraj Patil')
@@ -62,7 +62,7 @@ def base(page, label):
     c.setFont('PortfolioSansBold', 22)
     c.drawString(44, H - 47, 'vp')
     c.setFillColor(WINE)
-    c.drawString(77, H - 47, '.')
+    # The identity has no decorative period.
     c.setFillColor(MUTED)
     c.setFont('PortfolioSans', 8)
     c.drawRightString(W - 44, H - 44, label.upper())
@@ -71,12 +71,12 @@ def base(page, label):
     c.setFont('PortfolioSans', 8)
     c.setFillColor(MUTED)
     c.drawString(44, 32, 'VIRAJ PATIL / PORTFOLIO')
-    c.drawRightString(W - 44, 32, f'{page:02d} / 02')
+    c.drawRightString(W - 44, 32, f'{page:02d} / 03')
 
 
 def link(label, href, x, y, width=470):
     href = escape(href, {'"': '&quot;'})
-    return para(f'<link href="{href}" color="#cb8da7">{safe(label)}  →</link>', x, y, width, 9, WINE)
+    return para(f'<link href="{href}" color="#c6b487">{safe(label)}  →</link>', x, y, width, 9, WINE)
 
 
 def project(p, top, full=False):
@@ -114,7 +114,15 @@ y = project(DATA['projects'][2], y - 26)
 line(y - 25)
 y = project(DATA['projects'][3], y - 38)
 line(y - 16)
-y = para('Let’s start a conversation.', 44, y - 33, 510, 22, TEXT)
+if y < 68:
+    raise RuntimeError(f'Page 2 content overflow: {y}')
+c.showPage()
+base(3, 'Research direction / Contact')
+y = project(DATA['projects'][4], 755, full=True)
+y = para('<b>CONCEPT BOUNDARY</b>', 44, y - 20, 510, 8, WINE)
+y = para(safe(DATA['projects'][4]['boundary']), 44, y - 10, 510, 10, MUTED)
+line(y - 20)
+y = para('Let’s start a conversation.', 44, y - 43, 510, 22, TEXT)
 y = para(safe(DATA['education']), 44, y - 12, 500, 10, MUTED)
 y = para(safe(DATA['location']) + ' · ' + safe(DATA['email']), 44, y - 8, 500, 10, MUTED)
 for r in DATA['resources']:
@@ -122,6 +130,6 @@ for r in DATA['resources']:
         href = DATA['website'].rstrip('/') + r['href'] if r['href'].startswith('/') else r['href']
         y = link(r['label'] + ' / ' + href.replace('https://', ''), href, 44, y - 7)
 if y < 68:
-    raise RuntimeError(f'Page 2 content overflow: {y}')
+    raise RuntimeError(f'Page 3 content overflow: {y}')
 c.save()
 print(OUT)

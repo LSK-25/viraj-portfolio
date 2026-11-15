@@ -4,6 +4,8 @@ import "./globals.css";
 import "./cinema.css";
 import "./spatial.css";
 import "./glass.css";
+import "./case-studies.css";
+import "./dossier.css";
 
 const inter = localFont({
   src: "./fonts/inter-latin.woff2",

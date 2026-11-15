@@ -5,7 +5,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { type MotionValue } from "motion/react";
 import { Group, MathUtils, PMREMGenerator, type WebGLRenderTarget } from "three";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
-import { BilliModel, NovaModel, SadafuliModel, SentinelModel } from "./ProjectModels";
+import { BilliModel, NovaModel, SadafuliModel, SentinelModel, GlassesModel } from "./ProjectModels";
 import type { GalleryInteraction } from "./types";
 
 type Props = {
@@ -62,7 +62,7 @@ function Lighting({ onFailure }: { onFailure: () => void }) {
     gl.domElement.addEventListener("webglcontextlost", lost);
     return () => { gl.domElement.removeEventListener("webglcontextlost", lost); scene.environment = previous; scene.environmentIntensity = previousIntensity; target?.dispose(); };
   }, [getState, onFailure]);
-  return <><ambientLight intensity={.6} /><directionalLight position={[3, 6, 5]} intensity={3} color="#fff0e2" /><directionalLight position={[-5, 1, 3]} intensity={2.5} color="#b77595" /><directionalLight position={[1, -4, 2]} intensity={.8} color="#b0c9d1" /></>;
+  return <><ambientLight intensity={.6} /><directionalLight position={[3, 6, 5]} intensity={3} color="#fff0e2" /><directionalLight position={[-5, 1, 3]} intensity={2.5} color="#c7b88d" /><directionalLight position={[1, -4, 2]} intensity={.8} color="#b0c9d1" /></>;
 }
 
 function CameraTravel({ progress, interaction, paused }: Pick<Props, "progress" | "interaction" | "paused">) {
@@ -87,7 +87,7 @@ function ChapterWorld({ index, progress, interaction, paused }: { index: number 
   const world = useRef<Group>(null);
   const object = useRef<Group>(null);
   const time = useRef(0);
-  const Model = [NovaModel, BilliModel, SadafuliModel, SentinelModel][index];
+  const Model = [NovaModel, BilliModel, SadafuliModel, SentinelModel, GlassesModel][index];
   useFrame((_, delta) => {
     if (!paused) time.current += Math.min(delta, .05);
     if (world.current) {
@@ -119,7 +119,7 @@ export default function ProjectWorld(props: Props) {
     <fog attach="fog" args={["#0b0b0c", 15, 35]} />
     <Lighting onFailure={props.onFailure} />
     <CameraTravel {...props} />
-    {[0, 1, 2, 3].map(index => <ChapterWorld key={index} index={index} {...props} />)}
+    {[0, 1, 2, 3, 4].map(index => <ChapterWorld key={index} index={index} {...props} />)}
     <SceneReady onReady={props.onReady} />
   </Canvas></SceneBoundary>;
 }

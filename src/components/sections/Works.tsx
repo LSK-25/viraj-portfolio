@@ -1,6 +1,5 @@
 "use client";
 
-import { EraseText } from "@/components/ui/EraseText";
 import dynamic from "next/dynamic";
 import { Component, useCallback, useEffect, useRef, useState, type ReactNode, type PointerEvent, type CSSProperties } from "react";
 import { useMotionValue } from "motion/react";
@@ -18,8 +17,8 @@ class ViewerBoundary extends Component<{ children: ReactNode; onFailure: () => v
   componentDidCatch() { this.props.onFailure(); }
   render() { return this.state.failed ? null : this.props.children; }
 }
-const accents = ["#c887a2", "#eda7bb", "#d6bd9a", "#a4c3bd"];
-const chapterWords = ["A little more human.", "Details with personality.", "Tradition, reimagined.", "See the signal."];
+const accents = ["#c887a2", "#eda7bb", "#d6bd9a", "#a4c3bd", "#c7b88d"];
+const chapterWords = ["A little more human.", "Details with personality.", "Tradition, reimagined.", "See the signal.", "Intelligence, beyond the screen."];
 
 export function Works() {
   const section = useRef<HTMLElement>(null);
@@ -113,7 +112,7 @@ export function Works() {
 
   return (
     <>
-      <div className="work-prologue section-shell" data-reveal><p className="eyebrow">01 / Selected work</p><h2><EraseText lines={["Different ideas."]} /><br /><em><EraseText lines={["New dimensions."]} /></em></h2><div className="prologue-note"><span className="orbit-symbol" aria-hidden="true">↗</span><p>Four projects. Each with a world of its own.<br />Scroll to travel. Stop to explore.</p></div></div>
+      <div className="work-prologue section-shell" data-reveal><p className="eyebrow">01 / Selected work</p><h2><span>Different ideas.</span><br /><em><span>New dimensions.</span></em></h2><div className="prologue-note"><span className="orbit-symbol" aria-hidden="true">↗</span><p>Five projects. Five ways of looking at a problem.<br />Scroll to travel. Stop to explore.</p></div></div>
       <section id="works" ref={section} className={`spatial-work ${mode === "index" ? "is-index" : "is-spatial"}`} aria-label="Selected projects" style={{ "--chapter-accent": accents[active] } as CSSProperties}>
         <div className="work-stage" onPointerMove={move} onPointerDown={startDrag} onPointerUp={() => { interaction.current.dragging = false; }} onPointerCancel={() => { interaction.current.dragging = false; }} onPointerLeave={() => { if (!interaction.current.dragging) { interaction.current.x = 0; interaction.current.y = 0; } }}>
           <div className="gallery-grid" aria-hidden="true" />
@@ -132,15 +131,15 @@ export function Works() {
               <div className="chapter-meta"><span>{project.number} — {project.category}</span><span>{project.status}</span></div>
               <h3>{project.title}</h3><p className="chapter-tagline">{chapterWords[index]}</p><p className="chapter-description">{project.description}</p>
               <p className="chapter-stack">{project.stack.slice(0, 3).join(" / ")}</p>
-              <div className="chapter-links"><a className="button button-primary" href={`#case-${project.id}`}>Explore project<ArrowIcon width={15} /></a>{project.href && <a className="text-link" href={project.href} target="_blank" rel="noopener noreferrer">{project.id === "nova" ? "GitHub" : "Live website"}<ArrowIcon width={14} /></a>}</div>
+              <div className="chapter-links"><a className="button button-primary" href={`/projects/${project.id}`}>Explore project<ArrowIcon width={15} /></a>{project.href && <a className="text-link" href={project.href} target="_blank" rel="noopener noreferrer">{project.id === "nova" ? "GitHub" : "Live website"}<ArrowIcon width={14} /></a>}</div>
             </article>)}</div>
-            <div className="gallery-bottom"><nav className="chapter-navigation" aria-label="Project chapters">{projects.map((project, index) => <button key={project.id} type="button" onClick={() => goTo(index)} aria-label={`View ${project.title}`} aria-current={active === index ? "step" : undefined}><span>{project.number}</span><i /><b>{project.id === "billi-boba" ? "B&B" : project.id === "sadafuli" ? "Sadafuli" : project.id === "nova" ? "NOVA" : "Sentinel"}</b></button>)}</nav><p className="gallery-instruction"><span className="drag-hint">Move to explore · Drag to tilt</span><span>Scroll to discover <span aria-hidden="true">↓</span></span></p></div>
+            <div className="gallery-bottom"><nav className="chapter-navigation" aria-label="Project chapters">{projects.map((project, index) => <button key={project.id} type="button" onClick={() => goTo(index)} aria-label={`View ${project.title}`} aria-current={active === index ? "step" : undefined}><span>{project.number}</span><i /><b>{project.id === "billi-boba" ? "B&B" : project.id === "sadafuli" ? "Sadafuli" : project.id === "nova" ? "NOVA" : project.id === "sentinel" ? "Sentinel" : "Glasses"}</b></button>)}</nav><p className="gallery-instruction"><span className="drag-hint">Move to explore · Drag to tilt</span><span>Scroll to discover <span aria-hidden="true">↓</span></span></p></div>
           </>}
-          <div className="work-index section-shell">{projects.map(project => <article className="index-project" key={project.id}><ProjectVisual project={project} /><div><span className="eyebrow">{project.number} / {project.category}</span><h3>{project.title}</h3><p>{project.description}</p><div className="index-links"><a className="text-link" href={`#case-${project.id}`}>Explore project<ArrowIcon width={14} /></a>{project.href && <a className="text-link" href={project.href} target="_blank" rel="noopener noreferrer">{project.id === "nova" ? "GitHub" : "Live website"}<ArrowIcon width={14} /></a>}</div></div></article>)}</div>
+          <div className="work-index section-shell">{projects.map(project => <article className="index-project" key={project.id}><ProjectVisual project={project} /><div><span className="eyebrow">{project.number} / {project.category}</span><h3>{project.title}</h3><p>{project.description}</p><div className="index-links"><a className="text-link" href={`/projects/${project.id}`}>Explore project<ArrowIcon width={14} /></a>{project.href && <a className="text-link" href={project.href} target="_blank" rel="noopener noreferrer">{project.id === "nova" ? "GitHub" : "Live website"}<ArrowIcon width={14} /></a>}</div></div></article>)}</div>
         </div>
         <noscript><style>{`.spatial-work{height:auto!important}.gallery-canvas,.gallery-editorial,.gallery-bottom,.gallery-toolbar,.world-watermark{display:none!important}.work-stage{height:auto!important;position:relative!important}.work-index{display:grid!important}`}</style></noscript>
       </section>
-      <div className="gallery-outro section-shell"><span>End of selected work / More to build</span><AssistantTrigger className="text-link" prompt="Compare Viraj's four projects and explain what he built in each.">Let NOVA walk you through it<ArrowIcon width={15} /></AssistantTrigger></div>
+      <div className="gallery-outro section-shell"><span>End of selected work / More to build</span><AssistantTrigger className="text-link" prompt="Compare Viraj's five projects and explain what he built in each.">Let NOVA walk you through it<ArrowIcon width={15} /></AssistantTrigger></div>
     </>
   );
 }

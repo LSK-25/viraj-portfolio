@@ -139,6 +139,26 @@
       "implementation": "Built a webcam pipeline with confidence-scored YOLO person detection, OpenCV motion analysis, alert-hold and stability logic, timestamped evidence snapshots, and a Flask dashboard.",
       "outcome": "Validated the capture-to-dashboard workflow locally, including monitoring status and intrusion evidence.",
       "boundary": "A prototype, not a certified security product. No measured accuracy, latency, or field-deployment claims are available."
+    },
+    {
+      "id": "smart-glasses",
+      "number": "05",
+      "title": "AI Smart Glasses",
+      "subtitle": "Intelligence, beyond the screen.",
+      "category": "Wearable AI · Research concept",
+      "status": "Concept / research",
+      "href": "",
+      "stack": [
+        "Wearable design",
+        "Multimodal AI",
+        "Voice interface",
+        "Systems research"
+      ],
+      "description": "An early exploration of lightweight glasses that could connect a first-person camera and voice interface to an online AI assistant.",
+      "challenge": "Explore everyday assistance in a normal-looking pair of glasses, balancing useful context with weight, power, privacy and response time.",
+      "implementation": "The proposed architecture separates camera and audio capture from companion-device processing and online AI. The hardware, model, connectivity and battery choices are still being evaluated.",
+      "outcome": "A defined product direction and architecture concept. This is a separate project from the NOVA desktop companion and Sentinel.",
+      "boundary": "Concept stage: no working glasses hardware, AR display, battery-life results, measured latency or production-ready features are claimed. Recording and sharing would require visible controls and deliberate user action."
     }
   ]
 }

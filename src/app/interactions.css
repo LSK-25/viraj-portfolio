@@ -12,3 +12,19 @@
 @media(prefers-reduced-motion:reduce){.lens-project-panel{animation:none}.lens-gimbal,.hero-project-lens,.case-card-interactive{transform:none!important}.lens-preview{transform:none!important}.lens-project-link,.lens-project-tabs button,.lens-hint button,.case-card-link .case-card-plus,.case-card-art,.case-card-open svg,.case-card-interactive:before,.desktop-nav a:after,.contact-links a:after{transition:none}.lens-open-mark{transition:none}.lens-project-link:hover,.case-card-link:hover .case-card-plus,.case-card-link:hover .case-card-open svg{transform:none}}
 
 @media(prefers-reduced-motion:reduce),(hover:none),(pointer:coarse){.dossier-identity h1 .erase-ink,.dossier-identity h1 .erase-ink.is-erased{opacity:1;transform:none;filter:none;transition:none}}
+
+/* Autoplay has an explicit stop control; manual selection restarts its five seconds. */
+.lens-hint .lens-auto-toggle{width:auto;min-width:57px;padding-inline:10px;font:8px monospace;letter-spacing:.4px}.lens-hint .lens-auto-toggle[aria-pressed=true]{border-color:#c8b68166;color:#decea2}.lens-auto-toggle:disabled{opacity:.4;cursor:default}
+/* The gallery canvas ends above its navigation dock, so captions cannot sit behind it. */
+@media(min-width:761px){
+ .work-stage{--gallery-dock-height:112px}
+ .gallery-canvas.studio-canvas{top:72px;bottom:calc(var(--gallery-dock-height) + 28px)}
+ .gallery-bottom{bottom:0;height:var(--gallery-dock-height);padding:19px 0;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:25px;border-top:1px solid #b7b78c26;background:#101510}
+ .gallery-bottom .chapter-navigation{width:max-content;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;align-items:center}
+ .gallery-bottom .chapter-navigation button{flex-shrink:0}
+ .gallery-bottom .gallery-instruction{display:flex;flex-direction:column;align-items:flex-end;gap:9px;white-space:nowrap}
+ .gallery-editorial{bottom:calc(var(--gallery-dock-height) + 28px)}
+ .gallery-fallback-sculpture .art-caption{bottom:0}
+}
+@media(min-width:761px) and (max-height:650px){.work-stage{--gallery-dock-height:90px}.gallery-canvas.studio-canvas{top:58px}.gallery-bottom{padding-block:12px}.gallery-editorial{top:88px}}
+@media(max-width:760px){.lens-hint .lens-auto-toggle{min-width:56px;padding-inline:8px;font-size:8px}}

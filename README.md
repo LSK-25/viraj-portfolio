@@ -4,7 +4,7 @@ Complete source update for https://viraj-portfolio-mu.vercel.app/.
 This ZIP is not a deployment. Copy the changes into the existing connected
 repository and push them to update the public website.
 
-## This revision: interactive lens
+## This revision: automatic lens and clear captions
 
 - Restored the disappearing-letter effect on the large name, section headings,
   dossier titles and footer. Letters return after roughly 1.4 seconds. Mouse-only;
@@ -14,8 +14,15 @@ repository and push them to update the public website.
 - The hero lens is now a project selector, starting with Smart Glasses. Its numbered
   controls select all five projects, rotate the outer dial and reveal the artwork,
   title, status and subtitle. Click the centre or arrow to open the selected dossier.
-- Arrow-key/Home/End navigation, previous/next buttons and touch-sized controls are
-  included. Selection is announced to screen readers. It does not auto-advance.
+- The lens cycles through all five projects every five seconds, including the
+  last-to-first transition without spinning backwards. Pause/Resume is available.
+  Hover, keyboard focus, leaving the viewport and hiding the tab suspend cycling.
+  Resuming or selecting a project starts a fresh five-second interval. Reduced
+  motion keeps the lens manual. Automatic changes do not announce every slide.
+- Arrow-key/Home/End navigation, previous/next buttons and touch-sized controls
+  remain available. Manual selection is announced to screen readers.
+- The desktop gallery reserves a bottom dock for navigation and ends the artwork
+  canvas above it, preventing the navigation from covering artwork captions.
 - The lens responds to mouse position with spring-driven tilt and glass highlights.
   Project cards have gentle tilt, staggered scroll reveals and hover details.
   The main work button has magnetic movement. Reduced motion removes these effects.
@@ -72,13 +79,13 @@ Their code, images, identities and recorded media were not copied.
 Set-Location "C:\Projects\viraj-portfolio"
 git status
 git add src public scripts tests README.md
-git commit -m "Restore gold cursor and add interactive project lens"
+git commit -m "Auto-rotate project lens and prevent gallery caption overlap"
 git push
 ```
 
 Use your existing deployment branch. Wait for Vercel to show Ready for this commit,
 then refresh the website. Extracting/copying alone does not deploy it. The version
-check is the five numbered controls below the hero lens and the restored gold cursor.
+check is the Pause/Resume control under the lens and the separate gallery navigation dock.
 
 Use Node.js 22 or 24. API routes require server hosting; do not use static export.
 The normal npm run build uses Next.js Turbopack.

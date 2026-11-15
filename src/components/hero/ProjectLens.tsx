@@ -1,17 +1,43 @@
 'use client';
 
 import Link from 'next/link';
-import { useRef, useState, type PointerEvent, type KeyboardEvent } from 'react';
-import { motion, useMotionValue, useReducedMotion, useSpring } from 'motion/react';
+import { useEffect, useRef, useState, type PointerEvent, type KeyboardEvent } from 'react';
+import { motion, useInView, useMotionValue, useReducedMotion, useSpring } from 'motion/react';
 import { projects } from '@/data/site';
 import { ProjectSculpture } from '@/components/spatial/ProjectSculpture';
 import { ArrowIcon } from '@/components/ui/Icons';
 
+const ROTATION_INTERVAL = 5000;
 const names = ['NOVA', 'B&B', 'Sadafuli', 'Sentinel', 'Glasses'];
 
 export function ProjectLens() {
   const [active, setActive] = useState(4);
   const reduced = useReducedMotion();
+  const container = useRef<HTMLDivElement>(null);
+  const inView = useInView(container, { amount: .25 });
+  const [automatic, setAutomatic] = useState(true);
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const [dialStep, setDialStep] = useState(4);
+  const [selectionPass, setSelectionPass] = useState(0);
+  const running = automatic && reduced === false && inView && visible && !hovered && !focused;
+
+  useEffect(() => {
+    const sync = () => setVisible(!document.hidden);
+    sync();
+    document.addEventListener('visibilitychange', sync);
+    return () => document.removeEventListener('visibilitychange', sync);
+  }, []);
+
+  useEffect(() => {
+    if (!running) return;
+    const timer = window.setTimeout(() => {
+      setActive(index => (index + 1) % projects.length);
+      setDialStep(step => step + 1);
+    }, ROTATION_INTERVAL);
+    return () => window.clearTimeout(timer);
+  }, [running, active, selectionPass]);
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
   const tiltX = useMotionValue(0);
   const tiltY = useMotionValue(0);
@@ -21,7 +47,10 @@ export function ProjectLens() {
 
   function select(index: number, focus = false) {
     const next = (index + projects.length) % projects.length;
+    const forward = (next - active + projects.length) % projects.length;
+    setDialStep(step => step + (forward > projects.length / 2 ? forward - projects.length : forward));
     setActive(next);
+    setSelectionPass(pass => pass + 1);
     if (focus) tabs.current[next]?.focus();
   }
   function keyboard(event: KeyboardEvent<HTMLButtonElement>, index: number) {
@@ -44,13 +73,17 @@ export function ProjectLens() {
   }
   function reset() { tiltX.set(0); tiltY.set(0); }
 
-  return <div className="lens-selector">
+  return <div ref={container} className="lens-selector"
+    onPointerEnter={event => { if (event.pointerType === 'mouse') setHovered(true); }}
+    onPointerLeave={() => setHovered(false)} onPointerCancel={() => setHovered(false)}
+    onFocusCapture={event => setFocused(event.target.matches(':focus-visible'))}
+    onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false); }}>
     <div className="lens-overline"><span>Interactive archive</span><span>{project.number} / 05</span></div>
     <div className="lens-instrument" onPointerMove={move} onPointerLeave={reset} onPointerCancel={reset}>
       <div className="lens-coordinate" aria-hidden="true"><i /><i /><i /><i /></div>
       <motion.div className="lens-gimbal" style={{ rotateX: reduced ? 0 : rotateX, rotateY: reduced ? 0 : rotateY, transformPerspective: 1000 }}>
         <div className="optical-shell" aria-hidden="true">
-          <motion.div className="optical-ring ring-one" animate={{ rotate: active * 72 }} transition={{ duration: reduced ? 0 : .85, ease: [.2, .75, .2, 1] }} />
+          <motion.div className="optical-ring ring-one" animate={{ rotate: dialStep * (360 / projects.length) }} transition={{ duration: reduced ? 0 : .85, ease: [.2, .75, .2, 1] }} />
           <div className="optical-ring ring-two" /><div className="optical-ring ring-three" />
         </div>
         <Link className="lens-aperture" href={`/projects/${project.id}`} aria-label={`Open ${project.title} project dossier`}>
@@ -69,7 +102,8 @@ export function ProjectLens() {
       <div className="lens-project-copy"><span>{item.status}</span><h2>{item.title}</h2><p>{item.subtitle}</p></div>
       <Link className="lens-project-link" href={`/projects/${item.id}`} aria-label={`Explore ${item.title}`}><ArrowIcon width={23} /></Link>
     </div>)}
-    <span className="sr-only" role="status">Selected project: {project.title}. {project.status}.</span>
-    <div className="lens-hint"><span>Choose a number. Discover the idea.</span><div><button type="button" onClick={() => select(active - 1)} aria-label="Previous project">&#8592;</button><button type="button" onClick={() => select(active + 1)} aria-label="Next project">&#8594;</button></div></div>
+    <span className="sr-only" role="status" aria-live={running ? "off" : "polite"}>Selected project: {project.title}. {project.status}.</span>
+    <div className="lens-hint"><span>{reduced ? 'Manual / reduced motion' : !automatic ? 'Auto rotation paused' : hovered || focused ? 'Paused while exploring' : 'Auto rotation / every 5s'}</span><div>
+      <button type="button" className="lens-auto-toggle" disabled={Boolean(reduced)} aria-pressed={automatic && !reduced} aria-label={automatic ? 'Pause automatic project rotation' : 'Resume automatic project rotation'} onClick={() => setAutomatic(value => !value)}>{automatic && !reduced ? 'Pause' : 'Resume'}</button><button type="button" onClick={() => select(active - 1)} aria-label="Previous project">&#8592;</button><button type="button" onClick={() => select(active + 1)} aria-label="Next project">&#8594;</button></div></div>
   </div>;
 }

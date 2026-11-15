@@ -57,10 +57,10 @@ export function NeonTubeCursor() {
       context!.save();
       context!.globalCompositeOperation = 'lighter';
       context!.globalAlpha = Math.min(1, (650 - (now - points[points.length - 1].born)) / 240);
-      tube('rgba(142,41,67,.24)', 25, 28);
-      tube('rgba(170,66,100,.65)', 6, 18, 2);
-      tube('rgba(220,163,185,.72)', 3, 12, -2);
-      tube('rgba(250,230,238,.9)', 1, 6);
+      tube('rgba(163,139,78,.16)', 15, 18);
+      tube('rgba(197,169,99,.5)', 4, 12, 1);
+      tube('rgba(230,212,162,.68)', 2, 8, -1);
+      tube('rgba(255,247,219,.9)', 1, 4);
       context!.restore();
       frame = requestAnimationFrame(draw);
     }

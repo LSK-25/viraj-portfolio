@@ -1,4 +1,7 @@
+import { EraseText } from "@/components/ui/EraseText";
 import Link from 'next/link';
+import { TiltSurface } from '@/components/ui/TiltSurface';
+import type { CSSProperties } from 'react';
 import { projects } from '@/data/site';
 import { caseStudyHref } from '@/data/case-studies';
 import { ArrowIcon } from '@/components/ui/Icons';
@@ -9,8 +12,9 @@ const flows = [['LISTEN', 'UNDERSTAND', 'RESPOND'], ['DISCOVER', 'PERSONALISE', 
 
 export function CaseFiles() {
   return <section id="case-files" className="section-shell section-space case-studio">
-    <div className="section-heading" data-reveal><div><p className="eyebrow">03 / Inside the ideas</p><h2><span>Built with intention.</span><br /><em><span>Made to be explored.</span></em></h2></div><p>Enter a project briefing.<br />Explore its story, system and implementation.</p></div>
-    <div className="case-studio-grid">{projects.map((project, index) => <article id={`case-${project.id}`} className={`case-file case-glass-card case-${project.id}`} key={project.id}>
+    <div className="section-heading" data-reveal><div><p className="eyebrow">03 / Inside the ideas</p><h2><EraseText lines={["Built with intention."]} /><br /><em><EraseText lines={["Made to be explored."]} /></em></h2></div><p>Enter a project briefing.<br />Explore its story, system and implementation.</p></div>
+    <div className="case-studio-grid">{projects.map((project, index) => <article id={`case-${project.id}`} className={`case-file case-glass-card case-${project.id}`} key={project.id} data-reveal style={{ "--reveal-delay": `${(index % 2) * 85}ms` } as CSSProperties}>
+      <TiltSurface className="case-card-interactive">
       <Link className="case-card-link" href={caseStudyHref(project.id)} aria-label={`Read the ${project.title} project report`}>
         <span className="case-card-top"><span>{project.number} / {project.category}</span><span className="case-card-status">{project.status}</span></span>
         <span className="case-card-art"><ProjectSculpture id={project.id} /></span>
@@ -20,6 +24,6 @@ export function CaseFiles() {
         <span className="case-card-open">Open project briefing<ArrowIcon width={14} /></span>
       </Link>
       <div className="case-card-report-footer"><span>Demo / How it works / Code</span>{project.href && <a href={project.href} target="_blank" rel="noopener noreferrer">{project.id === 'nova' ? 'Repository' : 'Live website'}<ArrowIcon width={12} /></a>}</div>
-    </article>)}</div>
+    </TiltSurface></article>)}</div>
   </section>;
 }

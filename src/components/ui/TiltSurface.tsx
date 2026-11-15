@@ -9,8 +9,8 @@ export function TiltSurface({children, className = '', label}: {children: ReactN
   const y = useMotionValue(0);
   const springX = useSpring(x, {stiffness: 150, damping: 23});
   const springY = useSpring(y, {stiffness: 150, damping: 23});
-  const rotateY = useTransform(springX, [-0.5, 0.5], [-7, 7]);
-  const rotateX = useTransform(springY, [-0.5, 0.5], [7, -7]);
+  const rotateY = useTransform(springX, [-0.5, 0.5], [-2.5, 2.5]);
+  const rotateX = useTransform(springY, [-0.5, 0.5], [2.5, -2.5]);
   function move(event: PointerEvent<HTMLDivElement>) {
     if (reduced || event.pointerType !== 'mouse') return;
     const rect = event.currentTarget.getBoundingClientRect();

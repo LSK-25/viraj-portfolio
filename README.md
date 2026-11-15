@@ -4,13 +4,30 @@ Complete source update for https://viraj-portfolio-mu.vercel.app/.
 This ZIP is not a deployment. Copy the changes into the existing connected
 repository and push them to update the public website.
 
-## This revision
+## This revision: interactive lens
+
+- Restored the disappearing-letter effect on the large name, section headings,
+  dossier titles and footer. Letters return after roughly 1.4 seconds. Mouse-only;
+  screen readers keep the complete text, and touch/reduced-motion text stays visible.
+- Restored the luminous cursor trail in restrained gold on the homepage and all
+  dossier pages. It never captures clicks, fades when idle and stops in hidden tabs.
+- The hero lens is now a project selector, starting with Smart Glasses. Its numbered
+  controls select all five projects, rotate the outer dial and reveal the artwork,
+  title, status and subtitle. Click the centre or arrow to open the selected dossier.
+- Arrow-key/Home/End navigation, previous/next buttons and touch-sized controls are
+  included. Selection is announced to screen readers. It does not auto-advance.
+- The lens responds to mouse position with spring-driven tilt and glass highlights.
+  Project cards have gentle tilt, staggered scroll reveals and hover details.
+  The main work button has magnetic movement. Reduced motion removes these effects.
+- The video stays removed; the five project facts, PDF, NOVA voice and chat settings
+  are unchanged from the preceding dossier edition. No new dependencies or AI calls.
+
+## Dossier edition foundation
 
 - A new charcoal, ivory and brushed-gold identity, with an original animated
   optical study, large VIRAJ PATIL typography and restrained glass surfaces.
 - Leon's background video is removed, including the 40 MB video asset.
-- Removed the neon cursor and loading gate. Headings stay readable without
-  temporarily disappearing letters. Touch and reduced-motion layouts are retained.
+- The loading gate remains removed. Touch and reduced-motion layouts are retained.
 - Five projects in the interactive gallery, index and project dossiers.
   AI Smart Glasses is explicitly concept/research work, separate from NOVA and
   Sentinel. Its illustrated frame and 3D model are concept studies, not hardware.
@@ -55,13 +72,13 @@ Their code, images, identities and recorded media were not copied.
 Set-Location "C:\Projects\viraj-portfolio"
 git status
 git add src public scripts tests README.md
-git commit -m "Add cinematic portfolio dossiers and smart glasses concept"
+git commit -m "Restore gold cursor and add interactive project lens"
 git push
 ```
 
 Use your existing deployment branch. Wait for Vercel to show Ready for this commit,
 then refresh the website. Extracting/copying alone does not deploy it. The version
-check is the gold optical hero with no video and five project dossiers.
+check is the five numbered controls below the hero lens and the restored gold cursor.
 
 Use Node.js 22 or 24. API routes require server hosting; do not use static export.
 The normal npm run build uses Next.js Turbopack.
@@ -127,16 +144,17 @@ The script uses the same project facts as the website and checks for overflow.
 
 ## Verification
 
-Production build, TypeScript and changed-code lint pass. Forty-two mocked tests
+Production build and TypeScript pass. Forty-two mocked regression tests
 cover assistant request/provider settings, quota and search behavior, voice
 interruption/permissions, timeline boundaries/seek controls and concept knowledge.
 Tests ran with Node's runner and a temporary TypeScript compilation harness
 because the local tsx runner was unavailable. Normal installs can use npm test.
 
-Production HTTP checks cover the homepage, all five project pages, unknown-route
+Production HTTP checks cover the homepage, five lens controls/panels, accessible
+selection markup, restored cursor/letter markup, all five project pages, unknown-route
 404s, report markup, both PDFs, artwork, absent video, assistant status and
-cross-origin rejection. The original chat API, assistant client and web-search
-source files match the previous revision byte for byte.
+cross-origin rejection. All assistant source files and project facts match the
+preceding dossier edition byte for byte.
 
 A fresh interactive browser/audio/GPU review was unavailable. Browser narration,
 fullscreen, visual layout across devices and actual Groq responses still need

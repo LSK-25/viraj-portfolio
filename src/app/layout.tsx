@@ -6,6 +6,8 @@ import "./spatial.css";
 import "./glass.css";
 import "./case-studies.css";
 import "./dossier.css";
+import "./interactions.css";
+import { NeonTubeCursor } from "@/components/NeonTubeCursor";
 
 const inter = localFont({
   src: "./fonts/inter-latin.woff2",
@@ -43,6 +45,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.variable} ${interTight.variable}`}>
         {children}
+        <NeonTubeCursor />
         <div className="noise" aria-hidden="true" />
       </body>
     </html>

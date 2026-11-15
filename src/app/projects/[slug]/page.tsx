@@ -7,6 +7,7 @@ import { ProjectSculpture } from '@/components/spatial/ProjectSculpture';
 import { CaseStudyTabs } from '@/components/case-study/CaseStudyTabs';
 import { PortfolioAssistant } from '@/components/assistant/PortfolioAssistant';
 import { ArrowIcon } from '@/components/ui/Icons';
+import { EraseText } from '@/components/ui/EraseText';
 
 type Props = { params: Promise<{ slug: string }> };
 export const dynamicParams = false;
@@ -28,7 +29,7 @@ export default async function ProjectPage({ params }: Props) {
     <a className="skip-link" href="#project-details">Skip to project report</a>
     <header className="case-header section-shell"><Link className="wordmark" href="/">Viraj Patil</Link><Link className="case-back" href={`/#case-${slug}`}><span aria-hidden="true">←</span> Back to selected work</Link><a className="case-header-contact" href={`mailto:${portfolio.email}`}>Let&apos;s talk<ArrowIcon width={14} /></a></header>
     <main>
-      <section className="case-hero section-shell"><div className="case-hero-copy"><p className="eyebrow">Project {project.number} / {project.category}</p><h1>{project.title}</h1><p className="case-hero-subtitle">{project.subtitle}</p><p className="case-hero-description">{project.description}</p><a className="button button-primary" href="#project-details">Watch the briefing<span aria-hidden="true">▶</span></a><div className="case-hero-facts"><span><small>STATUS</small>{project.status}</span><span><small>REPORT</small>{study.codename}</span><span><small>FORMAT</small>Cinematic recreation</span></div></div><div className="case-hero-art"><ProjectSculpture id={slug} /></div></section>
+      <section className="case-hero section-shell"><div className="case-hero-copy"><p className="eyebrow">Project {project.number} / {project.category}</p><h1><EraseText lines={[project.title]} /></h1><p className="case-hero-subtitle">{project.subtitle}</p><p className="case-hero-description">{project.description}</p><a className="button button-primary" href="#project-details">Watch the briefing<span aria-hidden="true">▶</span></a><div className="case-hero-facts"><span><small>STATUS</small>{project.status}</span><span><small>REPORT</small>{study.codename}</span><span><small>FORMAT</small>Cinematic recreation</span></div></div><div className="case-hero-art"><ProjectSculpture id={slug} /></div></section>
       <CaseStudyTabs project={project} study={study} />
       <section className="case-next section-shell"><div><p className="eyebrow">Continue exploring</p><Link href={caseStudyHref(next.id)}>{next.title}<ArrowIcon width={30} height={30} /></Link></div><Link href="/#works" className="text-link">All selected work<ArrowIcon width={15} /></Link></section>
     </main>

@@ -1,0 +1,187 @@
+{
+  "model": "Kokoro v1.0",
+  "voice": "af_heart",
+  "sampleRate": 24000,
+  "tracks": {
+    "nova": {
+      "file": "nova.wav",
+      "sha256": "552dc8375e0654ff221ddd19fe4bdf02c3ab6489528feea3359dc7b7b2d414c6",
+      "chapters": [
+        {
+          "text": "NOVA and ADA explore a private desktop companion. The goal is conversation that connects naturally with useful software.",
+          "speechSeconds": 7.936,
+          "chapterSeconds": 12,
+          "speed": 1.0
+        },
+        {
+          "text": "Speech recognition turns a spoken request into text. This animated signal illustrates that handoff; it is not a microphone recording.",
+          "speechSeconds": 8.917,
+          "chapterSeconds": 12,
+          "speed": 1.0
+        },
+        {
+          "text": "Ollama runs the language model locally. Conversation context moves from the desktop application to inference and back.",
+          "speechSeconds": 7.872,
+          "chapterSeconds": 12,
+          "speed": 1.0
+        },
+        {
+          "text": "The interface presents a reply and speech gives it a voice. Explicit desktop actions remain separate from ordinary conversation.",
+          "speechSeconds": 8.277,
+          "chapterSeconds": 12,
+          "speed": 1.0
+        },
+        {
+          "text": "The current work is a laptop application. A physical desk companion is a future direction, not a shipped device.",
+          "speechSeconds": 6.976,
+          "chapterSeconds": 12,
+          "speed": 1.0
+        }
+      ]
+    },
+    "billi-boba": {
+      "file": "billi-boba.wav",
+      "sha256": "6042e7dc6d533840467e67a6ea2250f305e5562a44bd8469fa439dcbb0a4584b",
+      "chapters": [
+        {
+          "text": "BILLi and BoBA is a storefront for custom press-on nails. Product detail and mobile browsing drive the experience.",
+          "speechSeconds": 7.659,
+          "chapterSeconds": 12,
+          "speed": 1.0
+        },
+        {
+          "text": "Visitors explore the collection and narrow their choices. Product pages bring the visual detail of each set into focus.",
+          "speechSeconds": 7.787,
+          "chapterSeconds": 12,
+          "speed": 1.0
+        },
+        {
+          "text": "Photo-sizing guidance helps explain the order process. The design gives customers a clearer path from browsing to choosing.",
+          "speechSeconds": 7.68,
+          "chapterSeconds": 12,
+          "speed": 1.0
+        },
+        {
+          "text": "Cart, checkout and order-tracking screens connect the customer journey. These panels reconstruct that flow; they are not live orders.",
+          "speechSeconds": 8.064,
+          "chapterSeconds": 12,
+          "speed": 1.0
+        },
+        {
+          "text": "Supabase-backed media and admin workflows support the storefront. The live website is available separately from this visual briefing.",
+          "speechSeconds": 8.064,
+          "chapterSeconds": 12,
+          "speed": 1.0
+        }
+      ]
+    },
+    "sadafuli": {
+      "file": "sadafuli.wav",
+      "sha256": "2db0cfb563a55526cd5cfa9e7dfa8d9eedab472b2ef0a2d200090928e215b20a",
+      "chapters": [
+        {
+          "text": "Sadafuli by Isha brings Indian craft into a digital storefront. The brief connects brand presentation with a practical shopping journey.",
+          "speechSeconds": 8.853,
+          "chapterSeconds": 12,
+          "speed": 1.0
+        },
+        {
+          "text": "Collections and product pages guide discovery. Images, fabric information and product details help visitors understand what they are choosing.",
+          "speechSeconds": 9.109,
+          "chapterSeconds": 12,
+          "speed": 1.0
+        },
+        {
+          "text": "Cart and wishlist flows keep browsing connected. The checkout view assembles the selected products into an order enquiry.",
+          "speechSeconds": 7.701,
+          "chapterSeconds": 12,
+          "speed": 1.0
+        },
+        {
+          "text": "Checkout prepares an order enquiry for WhatsApp. Payment and final confirmation are handled through the store\u2019s conversation, not this website.",
+          "speechSeconds": 8.747,
+          "chapterSeconds": 12,
+          "speed": 1.0
+        },
+        {
+          "text": "Protected admin tools manage products, images and collections. Supabase supports authentication, storage and access rules behind the publishing workflow.",
+          "speechSeconds": 10.197,
+          "chapterSeconds": 12,
+          "speed": 1.0
+        }
+      ]
+    },
+    "sentinel": {
+      "file": "sentinel.wav",
+      "sha256": "9ccab65d768ab6e8f0c71d5b0467c9d8ef220931b1d845ad9040f0da28e9ed30",
+      "chapters": [
+        {
+          "text": "Sentinel connects a local camera feed to detection and monitoring. The corridor on screen is a recreated scene, not live surveillance.",
+          "speechSeconds": 8.789,
+          "chapterSeconds": 12,
+          "speed": 1.0
+        },
+        {
+          "text": "YOLO checks for people while OpenCV tracks motion. The moving subject and bounding box illustrate the detection stage.",
+          "speechSeconds": 7.701,
+          "chapterSeconds": 12,
+          "speed": 1.0
+        },
+        {
+          "text": "Alert-hold and stability logic address flickering states and repeated triggers. The goal is an understandable event, not a noisy stream.",
+          "speechSeconds": 8.875,
+          "chapterSeconds": 12,
+          "speed": 1.0
+        },
+        {
+          "text": "Timestamped evidence snapshots connect a detection to its record. A Flask dashboard presents monitoring status and intrusion evidence.",
+          "speechSeconds": 8.64,
+          "chapterSeconds": 12,
+          "speed": 1.0
+        },
+        {
+          "text": "The capture-to-dashboard workflow was validated locally. Field reliability, accuracy and response time still need formal measurement.",
+          "speechSeconds": 8.661,
+          "chapterSeconds": 12,
+          "speed": 1.0
+        }
+      ]
+    },
+    "smart-glasses": {
+      "file": "smart-glasses.wav",
+      "sha256": "0bab9809c1e66864c807d6b6147c819ff0ef3c7a213163eb5b514968334cfea0",
+      "chapters": [
+        {
+          "text": "A new research direction: AI smart glasses. The ambition is useful assistance in everyday life, without another screen in your hand.",
+          "speechSeconds": 8.32,
+          "chapterSeconds": 12,
+          "speed": 1.0
+        },
+        {
+          "text": "A proposed first-person camera captures a moment when requested. The scene shown here illustrates an idea; no camera is active.",
+          "speechSeconds": 8.235,
+          "chapterSeconds": 12,
+          "speed": 1.0
+        },
+        {
+          "text": "A voice question accompanies the selected view. A companion device could prepare that context for an online multimodal model.",
+          "speechSeconds": 8.064,
+          "chapterSeconds": 12,
+          "speed": 1.0
+        },
+        {
+          "text": "A spoken answer returns through the wearable. Fast interaction, practical power use and a comfortable frame are design goals to investigate.",
+          "speechSeconds": 8.661,
+          "chapterSeconds": 12,
+          "speed": 1.0
+        },
+        {
+          "text": "This is a concept, separate from NOVA and Sentinel. Hardware selection and testing come next. Augmented reality remains a later possibility.",
+          "speechSeconds": 9.088,
+          "chapterSeconds": 12,
+          "speed": 1.0
+        }
+      ]
+    }
+  }
+}

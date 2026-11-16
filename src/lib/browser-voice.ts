@@ -1,8 +1,11 @@
 import { AssistantRequestError, conversationWindow, requestAnswer, type ChatMessage } from './assistant-client';
 import type { LinkCard } from './portfolio-knowledge';
 import type { WebLookup } from './web-access';
+import { heartVoice } from './heart-voice';
+import { speechText } from './speech-text';
 
 export type VoicePhase = 'idle' | 'connecting' | 'listening' | 'thinking' | 'speaking';
+export type VoiceRenderer = 'heart' | 'browser';
 
 interface RecognitionEvent {
   resultIndex: number;
@@ -31,13 +34,14 @@ type Callbacks = {
   level(value: number): void;
   playbackBlocked(value: boolean): void;
   web?(id: string, lookup: WebLookup): void;
+  voiceStatus?(message: string): void;
 };
 
 export function browserVoiceSupported() {
   if (typeof window === 'undefined') return false;
   const browser = window as RecognitionWindow;
   return Boolean((browser.SpeechRecognition || browser.webkitSpeechRecognition)
-    && window.speechSynthesis && typeof SpeechSynthesisUtterance !== 'undefined'
+    && (typeof AudioContext !== 'undefined' || window.speechSynthesis)
     && window.isSecureContext !== false);
 }
 
@@ -54,8 +58,9 @@ export class BrowserVoice {
   private speechTimer: ReturnType<typeof setTimeout> | null = null;
   private utterance: SpeechSynthesisUtterance | null = null;
   private pendingSpeech = '';
+  private preparingHeart = false;
 
-  constructor(private callbacks: Callbacks, history: ChatMessage[] = [], private forceSearch = false) {
+  constructor(private callbacks: Callbacks, history: ChatMessage[] = [], private forceSearch = false, private renderer: VoiceRenderer = 'heart') {
     this.history = conversationWindow(history);
   }
 
@@ -70,7 +75,30 @@ export class BrowserVoice {
       this.callbacks.error('This five-minute voice session has ended. You can start another.');
       this.stop();
     }, 5 * 60_000);
-    this.listen();
+    if (this.renderer === 'heart') {
+      this.preparingHeart = true;
+      this.setPhase('connecting');
+      void this.prepareHeart();
+    } else if (window.speechSynthesis && typeof SpeechSynthesisUtterance !== 'undefined') {
+      this.callbacks.voiceStatus?.('Browser voice selected');
+      this.listen();
+    } else { this.callbacks.error('Browser voice is unavailable. Choose Heart or use text chat.'); this.stop(); }
+  }
+
+  private async prepareHeart() {
+    try {
+      // Unlock inside the original click; loading never delays the text chat path.
+      await heartVoice.unlock();
+      if (this.stopped) return;
+      await heartVoice.prepare(message => { if (!this.stopped) this.callbacks.voiceStatus?.(message); });
+      this.preparingHeart = false;
+      if (!this.stopped) this.listen();
+    } catch (error) {
+      if (this.stopped) return;
+      this.callbacks.error(error instanceof Error ? error.message : 'Heart could not start. Try Browser voice.');
+      this.callbacks.voiceStatus?.('Heart unavailable · retry or choose Browser voice');
+      this.stop();
+    }
   }
 
   private setPhase(phase: VoicePhase) {
@@ -90,7 +118,7 @@ export class BrowserVoice {
   }
 
   private listen() {
-    if (this.stopped || this.muted) return;
+    if (this.stopped || this.muted || this.preparingHeart) return;
     if (this.restart) clearTimeout(this.restart);
     this.discardRecognition();
     const browser = window as RecognitionWindow;
@@ -172,6 +200,7 @@ export class BrowserVoice {
   }
 
   private cancelSpeech() {
+    if (this.renderer === 'heart') heartVoice.cancel();
     if (this.speechTimer) clearTimeout(this.speechTimer);
     this.speechTimer = null;
     if (this.utterance) {
@@ -185,18 +214,16 @@ export class BrowserVoice {
   private speak(text: string, turn: number) {
     if (this.stopped || turn !== this.generation) return;
     this.cancelSpeech();
-    const plain = text
-      .replace(/[\x60]{3}[\s\S]*?[\x60]{3}/g, 'The code is available in the conversation.')
-      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-      .replace(/https?:\/\/\S+/g, 'the linked page')
-      .replace(/[*#_\x60]/g, '').slice(0, 1600);
+    const plain = speechText(text);
+    if (!plain) { this.pendingSpeech = ''; this.resumeListening(); return; }
+    if (this.renderer === 'heart') { void this.speakHeart(plain, turn); return; }
     const utterance = this.utterance = new SpeechSynthesisUtterance(plain);
     utterance.lang = 'en-US';
     const voices = window.speechSynthesis.getVoices().filter(voice => voice.lang.startsWith('en'));
-    const selectedVoice = voices.find(voice => voice.localService && /David|Mark|Daniel|Guy|George/i.test(voice.name)) || voices.find(voice => /David|Mark|Daniel|Guy|George/i.test(voice.name)) || voices.find(voice => voice.localService) || voices[0];
+    const selectedVoice = voices.find(voice => voice.localService && /Samantha|Zira|Jenny|Aria/i.test(voice.name)) || voices.find(voice => /Samantha|Zira|Jenny|Aria/i.test(voice.name)) || voices.find(voice => voice.localService) || voices[0];
     if (selectedVoice) utterance.voice = selectedVoice;
     utterance.rate = 1;
-    utterance.pitch = .88;
+    utterance.pitch = 1;
     const current = () => !this.stopped && turn === this.generation && this.utterance === utterance;
     utterance.onstart = () => {
       if (!current()) return;
@@ -233,6 +260,26 @@ export class BrowserVoice {
     }
   }
 
+  private async speakHeart(text: string, turn: number) {
+    const current = () => !this.stopped && turn === this.generation;
+    try {
+      this.callbacks.voiceStatus?.('Heart · preparing speech');
+      await heartVoice.speak(text, () => {
+        if (current()) { this.setPhase('speaking'); this.callbacks.voiceStatus?.('Heart · speaking'); }
+      });
+      if (!current()) return;
+      this.pendingSpeech = '';
+      this.callbacks.voiceStatus?.('Heart is ready');
+      this.resumeListening();
+    } catch (error) {
+      if (!current() || (error instanceof Error && error.name === 'AbortError')) return;
+      this.callbacks.playbackBlocked(true);
+      this.callbacks.voiceStatus?.('Heart · tap Read reply to retry');
+      if (!(error instanceof Error && error.name === 'NotAllowedError')) this.callbacks.error(error instanceof Error ? error.message : 'Heart could not read the reply.');
+      this.resumeListening();
+    }
+  }
+
   mute(muted: boolean) {
     this.muted = muted;
     if (muted) {
@@ -257,6 +304,7 @@ export class BrowserVoice {
 
   playAudio() {
     if (this.stopped || !this.pendingSpeech) return;
+    if (this.renderer === 'heart') void heartVoice.unlock().catch(() => this.callbacks.playbackBlocked(true));
     this.discardRecognition();
     this.setPhase('thinking');
     this.speak(this.pendingSpeech, this.generation);
@@ -274,6 +322,7 @@ export class BrowserVoice {
     this.cancelSpeech();
     this.pendingSpeech = '';
     this.callbacks.level(0);
+    this.callbacks.voiceStatus?.(this.renderer === 'heart' ? 'Heart · voice session ended' : 'Browser voice · session ended');
     this.setPhase('idle');
   }
 }

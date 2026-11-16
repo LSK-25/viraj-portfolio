@@ -10,7 +10,8 @@ const clock = (value: number) => `${Math.floor(value / 60)}:${String(Math.floor(
 
 export function MissionReport({ study }: { study: CaseStudy }) {
   const player = useRef<HTMLDivElement>(null);
-  const utterance = useRef<SpeechSynthesisUtterance | null>(null);
+  const audio = useRef<HTMLAudioElement>(null);
+  const playhead = useRef(0);
   const [playing, setPlaying] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [narration, setNarration] = useState(true);
@@ -30,27 +31,29 @@ export function MissionReport({ study }: { study: CaseStudy }) {
     let pending = 0;
     const tick = (now: number) => {
       pending += Math.min((now - last) / 1000, .2); last = now;
-      if (pending >= .05) { const delta = pending; pending = 0; setElapsed(value => Math.min(duration, value + delta)); }
+      if (pending >= .05) {
+        const delta = pending; pending = 0;
+        const next = narration && audio.current ? audio.current.currentTime : playhead.current + delta;
+        playhead.current = Math.min(duration, next);
+        setElapsed(playhead.current);
+      }
       frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [active, duration]);
+  }, [active, duration, narration]);
 
   useEffect(() => {
-    if (!active || !narration || !('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window)) return;
-    const voice = new SpeechSynthesisUtterance(scene.narration);
-    voice.lang = 'en-US'; voice.rate = .96; voice.pitch = .88; voice.volume = .85;
-    const voices = window.speechSynthesis.getVoices().filter(item => item.lang.startsWith('en'));
-    const selected = voices.find(item => /David|Mark|Daniel|Guy/i.test(item.name)) ?? voices.find(item => item.localService) ?? voices[0];
-    if (selected) voice.voice = selected;
-    utterance.current = voice;
-    voice.onend = () => { if (utterance.current === voice) utterance.current = null; };
-    voice.onerror = event => { if (utterance.current === voice) { utterance.current = null; if (!['interrupted', 'canceled'].includes(event.error)) setNotice('Narration could not play. Captions are available below.'); } };
-    window.speechSynthesis.speak(voice);
-    return () => { if (utterance.current === voice) { utterance.current = null; voice.onend = voice.onerror = null; window.speechSynthesis.cancel(); } };
-    // Seeking within a chapter intentionally replays that chapter's narration.
-  }, [active, narration, position.index, scene.narration, voicePass]);
+    const track = audio.current;
+    if (!track) return;
+    if (!active || !narration) { track.pause(); return; }
+    let canceled = false;
+    track.currentTime = playhead.current;
+    void track.play().catch(() => {
+      if (!canceled) { setNarration(false); setNotice('Heart audio could not play. Captions remain available; turn narration on to retry.'); }
+    });
+    return () => { canceled = true; track.pause(); };
+  }, [active, narration, voicePass, study.id]);
 
   useEffect(() => {
     const pause = () => setPlaying(false);
@@ -66,27 +69,27 @@ export function MissionReport({ study }: { study: CaseStudy }) {
   function toggle() {
     if (active) { setPlaying(false); return; }
     setNotice('');
-    if (ended) { setElapsed(0); setVoicePass(value => value + 1); }
-    if (narration && (!('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window))) setNotice('Narration is unavailable in this browser. Captions are on.');
+    if (ended) { playhead.current = 0; setElapsed(0); setVoicePass(value => value + 1); }
     setPlaying(true);
   }
-  function seek(value: number) { setElapsed(Math.max(0, Math.min(duration, value))); setVoicePass(pass => pass + 1); }
+  function seek(value: number) { playhead.current = Math.max(0, Math.min(duration, value)); setElapsed(playhead.current); setVoicePass(pass => pass + 1); }
   async function fullscreen() {
     try { if (document.fullscreenElement) await document.exitFullscreen(); else await player.current?.requestFullscreen(); }
     catch { setNotice('Fullscreen is unavailable here. The briefing still works in this view.'); }
   }
 
   return <div ref={player} className={`mission-player ${active ? 'is-playing' : 'is-paused'} ${reduced ? 'reduce-motion' : ''}`} style={{ '--report-accent': study.accent } as CSSProperties} aria-label={`${study.codename} project briefing`}>
+    <audio ref={audio} src={`/audio/heart/${study.id}.wav`} preload="metadata" onEnded={() => { playhead.current = duration; setElapsed(duration); setPlaying(false); }} onError={() => { setNarration(false); setNotice('Heart audio is unavailable. The visual briefing and captions still work.'); }} />
     <div className="mission-topbar"><span><i />PROJECT BRIEFING / {study.codename}</span><span>0{position.index + 1} / 0{study.scenes.length}</span></div>
+      <div className="mission-scene-caption" key={position.index}><span>{scene.label}</span><h3>{scene.heading}</h3><div>{scene.signals.map(signal => <b key={signal}>{signal}</b>)}</div></div>
     <div className="mission-stage">
       <BriefingVisual study={study} stage={position.index} progress={position.progress} reduced={Boolean(reduced)} />
       <div className="mission-vignette" aria-hidden="true" /><div className="mission-scanlines" aria-hidden="true" />
-      <div className="mission-scene-caption" key={position.index}><span>{scene.label}</span><h3>{scene.heading}</h3><div>{scene.signals.map(signal => <b key={signal}>{signal}</b>)}</div></div>
-      {!active && <button type="button" className="mission-play-overlay" onClick={toggle} aria-label={ended ? 'Replay briefing' : elapsed ? 'Resume briefing' : 'Play briefing'}><span aria-hidden="true">▶</span>{ended ? 'Replay briefing' : elapsed ? 'Resume briefing' : 'Begin briefing'}</button>}
+      {!active && (elapsed === 0 || ended) && <button type="button" className="mission-play-overlay" onClick={toggle} aria-label={ended ? 'Replay briefing' : 'Play briefing'}><span aria-hidden="true">▶</span>{ended ? 'Replay briefing' : 'Begin briefing'}</button>}
       <p className="mission-recreation">Scripted visual recreation · Not live application footage</p>
     </div>
     <div className="mission-captions" aria-live="polite" aria-atomic="true"><span>BRIEF / {scene.label}</span><p>{scene.narration}</p></div>
-    <div className="mission-controls"><button type="button" onClick={toggle} aria-label={active ? 'Pause briefing' : 'Play briefing'}>{active ? 'Ⅱ Pause' : ended ? '↺ Replay' : '▶ Play'}</button><span className="mission-clock">{clock(elapsed)} / {clock(duration)}</span><label className="sr-only" htmlFor={`report-progress-${study.id}`}>Briefing progress in seconds</label><input id={`report-progress-${study.id}`} type="range" min="0" max={duration} step="0.1" value={elapsed} onChange={event => seek(Number(event.target.value))} /><button type="button" aria-pressed={narration} onClick={() => setNarration(value => !value)}>Narration {narration ? 'on' : 'off'}</button><button type="button" onClick={() => void fullscreen()} aria-label="Toggle briefing fullscreen">↗<span className="fullscreen-label"> Fullscreen</span></button></div>
+    <div className="mission-controls"><button type="button" onClick={toggle} aria-label={active ? 'Pause briefing' : 'Play briefing'}>{active ? 'Ⅱ Pause' : ended ? '↺ Replay' : '▶ Play'}</button><span className="mission-clock">{clock(elapsed)} / {clock(duration)}</span><label className="sr-only" htmlFor={`report-progress-${study.id}`}>Briefing progress in seconds</label><input id={`report-progress-${study.id}`} type="range" min="0" max={duration} step="0.1" value={elapsed} onChange={event => seek(Number(event.target.value))} /><button type="button" aria-pressed={narration} onClick={() => setNarration(value => !value)}>Heart {narration ? 'on' : 'off'}</button><button type="button" onClick={() => void fullscreen()} aria-label="Toggle briefing fullscreen">↗<span className="fullscreen-label"> Fullscreen</span></button></div>
     <nav className="mission-chapters" aria-label="Briefing chapters">{study.scenes.map((item, index) => <button type="button" key={item.label} aria-current={index === position.index ? 'step' : undefined} onClick={() => seek(briefingChapterStart(study.scenes, index))}><span>0{index + 1}</span>{item.label}</button>)}</nav>
     {notice && <p className="mission-notice" role="status">{notice}</p>}
     <details className="mission-transcript"><summary>Read the complete briefing</summary>{study.scenes.map(item => <p key={item.label}><strong>{item.label}</strong>{item.narration}</p>)}</details>

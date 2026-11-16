@@ -188,7 +188,7 @@ function fakeBrowser(autoStart = true) {
     phase: phase => phases.push(phase),
     message: (_id, _role, text) => messages.push(text),
     links: () => {}, error: (error, seconds) => { errors.push(error); retryTimes.push(seconds); }, level: () => {}, playbackBlocked: () => {},
-  });
+  }, [], false, 'browser');
   return { voice, phases, messages, errors, retryTimes, recognizers, spoken, browser, canceled: () => canceled };
 }
 const settle = () => new Promise<void>(resolve => setImmediate(resolve));

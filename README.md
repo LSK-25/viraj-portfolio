@@ -4,32 +4,41 @@ Complete source update for https://viraj-portfolio-mu.vercel.app/.
 This ZIP is not a deployment. Copy the changes into the existing connected
 repository and push them to update the public website.
 
-## This revision: reconstructed scenes + Heart
+## This revision: fast live speech, continuous three-second lens and a new opening
 
-- Five distinct scene treatments: NOVA's desktop conversation, BILLi&BoBA's
-  product/sizing/order journey, Sadafuli's editorial storefront and WhatsApp
-  enquiry, Sentinel's camera/evidence study, and Smart Glasses' proposed
-  vision-to-voice flow. All are scripted reconstructions, not app recordings.
-- Detailed interface panels, context readouts, original camera/desk illustrations,
-  chapter progress, and motion tied to the seekable 60-second timeline.
-- Chapter titles sit above the scene instead of covering the artwork. Responsive
-  scenes stack on phones, retain captions and honor reduced motion.
-- Heart (Kokoro af_heart, the English voice used by ADA) replaces the previous
-  male browser voice. All 25 briefing narrations are generated and bundled.
-- Live NOVA speech uses Heart in a dedicated browser worker. No voice API key,
-  paid speech service, or exposed laptop server is needed. First use downloads
-  the model/runtime; speed and caching depend on the device and browser.
-- A voice preview and an explicitly named Browser voice fallback are available
-  under Sound & voice options. Heart failure never silently changes the voice.
-- Existing text-model requests/settings, automatic news search, gold cursor,
-  disappearing letters, five-second lens rotation and gallery caption dock stay.
+- NOVA live conversation is back on browser speech synthesis. Start voice no
+  longer downloads or initializes Kokoro, ONNX, WASM or a speech worker.
+- Automatic selection prefers an installed English female voice, with natural
+  pitch and the original speaking rate. The available voices depend on the OS
+  and browser; no particular voice is guaranteed on every device.
+- Sound & voice options now lists the browser's English voices. Preview a voice
+  before starting a conversation. The selected voice is remembered in this
+  browser. On-device and online voices are labeled; online voices may add delay.
+- A new two-second charcoal-and-gold opening reveals VIRAJ PATIL through an
+  original optical motif. Skip and Escape dismiss it immediately. It appears
+  once per tab, skips reduced motion, has no autoplay sound and never waits for
+  assets or AI loading. The first lens countdown restarts when the intro ends.
+- The front-page project box now scales with desktop viewport height. The full
+  card and project names fit at common laptop sizes; mobile puts the project
+  name above the artwork. Your large name remains the hero's main identity.
+- The hero lens now cycles every three seconds, including while hovered or
+  keyboard focused. Clicking any project selects it immediately and restarts
+  automatic cycling from there, even after pressing Pause. Reduced motion
+  remains manual; hidden/offscreen animation is suspended.
+- A new original graphite-and-titanium smart-glasses product render replaces
+  the earlier vector illustration in the lens, cards and briefing concept views.
+  It is labeled as a design concept, not built hardware.
+- Heart narration remains on all five project briefings, using the exact same
+  bundled audio files and timeline. The improved project scenes are preserved.
+- AI model, prompts, request timeout, automatic search and response settings are
+  unchanged. This restores the previous speech path, not a measured latency SLA.
 
 ## Dossier edition foundation
 
 - A new charcoal, ivory and brushed-gold identity, with an original animated
   optical study, large VIRAJ PATIL typography and restrained glass surfaces.
 - Leon's background video is removed, including the 40 MB video asset.
-- The loading gate remains removed. Touch and reduced-motion layouts are retained.
+- The brief opening is skippable; no asset-loading gate is used. Touch and reduced-motion layouts are retained.
 - Five projects in the interactive gallery, index and project dossiers.
   AI Smart Glasses is explicitly concept/research work, separate from NOVA and
   Sentinel. Its illustrated frame and 3D model are concept studies, not hardware.
@@ -66,22 +75,26 @@ Their code, images, identities and recorded media were not copied.
    from the earlier version. The new code never loads it, even if it remains.
 4. If present from a much older version, remove src/lib/realtime-voice.ts,
    the retired paid voice integration. It is not in this package.
-5. Run npm ci, npm run typecheck, npm test and npm run build.
-   kokoro-js 1.2.1 is the new dependency; no new provider key is required.
-   The official browser bundle is included; npm run prepare:heart can recreate it.
+5. Remove these retired files if copying left them behind:
+   src/lib/heart-voice.ts, tests/heart-voice.test.ts,
+   public/voice/heart-worker.mjs, public/voice/kokoro-1.2.1.mjs and
+   scripts/prepare-heart.mjs. Keep public/audio/heart and the voice license.
+   Then run npm ci, npm run typecheck, npm test and npm run build.
+   The live Kokoro dependency is removed; no new provider key is required.
 6. Run npm run dev to preview. Then commit and push from the existing repository:
 
 ```powershell
 Set-Location "C:\Projects\viraj-portfolio"
 git status
 git add src public scripts tests README.md package.json package-lock.json
-git commit -m "Rebuild project briefings and add ADA Heart voice"
+git commit -m "Add gold opening, compact project lens and fast live voice options"
 git push
 ```
 
 Use your existing deployment branch. Wait for Vercel to show Ready for this commit,
 then refresh the website. Extracting/copying alone does not deploy it. The version
-check is the Heart on/off control in briefings and Heart / ADA in NOVA's voice options.
+check is the gold opening, three-second lens label, compact project card and
+Reply voice / Preview voice in NOVA's sound options.
 
 Use Node.js 22 or 24. API routes require server hosting; do not use static export.
 The normal npm run build uses Next.js Turbopack.
@@ -92,8 +105,8 @@ Ordinary chat still uses Groq-hosted openai/gpt-oss-20b with its existing reques
 settings: low reasoning effort, temperature 0.6, 1200-token completion limit,
 non-streaming output and the same timeout and conversation window. Search,
 recognition and manual interruptions are retained. Text inference is unchanged.
-Heart speech generation has its own device-dependent latency; it is not promised
-as fast as the previous installed browser voice. A fallback remains selectable. The smart-glasses concept facts are added to context
+Live speech uses the previous browser renderer without a neural-model warmup.
+Audio startup still depends on the selected browser voice and device. The smart-glasses concept facts are added to context
 only for relevant portfolio questions.
 
 Keep the existing GROQ_API_KEY in the server environment. No paid provider,
@@ -109,41 +122,35 @@ The app cannot inspect the account's billing plan. Existing provider terms apply
 
 ## Voice
 
-Default: Kokoro v1.0 / af_heart, American English, natural pitch and speed 1.0.
-This is ADA's Heart voice, not a Leon Kennedy clone.
+NOVA uses browser speech recognition and SpeechSynthesis for live conversations.
+The default prefers an available local English female voice (for example Zira
+or Samantha), then another local English voice, then browser-provided English
+voices. Explicit visitor selection wins. Automatic mode never waits for the
+voice list to populate; it can use the browser default and refresh later.
 
-Live conversation:
-- Start voice unlocks audio, loads Heart on demand, and warms it before opening
-  the microphone. Loading is visible and cancellable by End voice. The worker
-  can finish warming in the background for the next session.
-- The official kokoro-js 1.2.1 browser bundle is served locally. It loads the q8
-  onnx-community/Kokoro-82M-v1.0-ONNX model/voice from Hugging Face and the pinned
-  compatible ONNX WASM runtime from jsDelivr. These hosts must be reachable.
-- Model files may be cached by the browser. Incognito/cache clearing/storage
-  eviction can require another download. No model is loaded by opening a page
-  or using text chat. Slow/low-memory devices can use Browser voice instead.
-- Heart synthesizes reply sentences inside a worker, and playback begins as
-  audio arrives. It doesn't send reply text to a speech API. The fixed preview
-  doesn't require a model download. Browser voice uses the device's voices.
-- Recognition pauses during playback. Interrupt & speak immediately stops
-  queued audio, cancels the pending answer and ignores late speech chunks.
-  Mute controls the mic; End voice/closing the panel ends the session.
-- Sessions end after five minutes. Automatic spoken barge-in isn't implemented.
-  HTTPS or localhost and supported browser speech recognition are required.
-- Heart is English-only here. ADA's separate Hindi/Marathi routing is not part
-  of this website update. Existing Groq chat limits still apply.
+Sound & voice options provides an actual voice preview, stops it before starting
+microphone recognition, and stores only the chosen voice URI under
+nova.browser-voice in localStorage. No conversations are stored there. If storage
+is blocked, the current-page selection still works. Missing saved voices fall
+back to automatic selection. Available voice lists update on voiceschanged.
 
-Briefings use public/audio/heart/*.wav: five 60-second, 24 kHz mono tracks.
-The 25 spoken segments fit their chapters without cutting words. The manifest
+Recognition pauses during replies. Interrupt & speak cancels pending inference
+or speech and resumes listening. Mute controls the mic; End voice and closing
+the panel end the session. Sessions end after five minutes. Automatic spoken
+barge-in is not implemented. Use HTTPS or localhost and a supported browser.
+
+Project briefings keep Kokoro v1.0 / af_heart, the English voice used in ADA.
+They play public/audio/heart/*.wav: five 60-second, 24 kHz mono tracks.
+All 25 spoken segments fit their chapters without cutting words. The manifest
 records narration text, timings and hashes. Pause/resume/seek stays synchronized;
-muting continues the visual timeline. Playback stops when hidden/offscreen or
-when NOVA opens. Captions and full transcripts are always available.
+muting continues the visuals. Playback stops when hidden/offscreen or when NOVA
+opens. Captions and full transcripts remain available. No model is downloaded
+or run for these prerecorded tracks. No Leon Kennedy voice clone is included.
 
-scripts/render-heart-briefings.py can regenerate these tracks with an existing
-ADA Kokoro installation and exported case-study JSON. It uses only the local
-model; it does not record sound, play audio, or download assets.
-Runtime source: https://github.com/hexgrad/kokoro/tree/main/kokoro.js
-Apache-2.0 license: public/voice/KOKORO-LICENSE.txt.
+scripts/render-heart-briefings.py can regenerate tracks with an existing ADA
+Kokoro installation and exported case-study JSON, using only the local model.
+Kokoro source: https://github.com/hexgrad/kokoro
+License: public/voice/KOKORO-LICENSE.txt.
 
 Heartbeat is a separate optional ambient sound, off by default. It gets quieter
 in conversation and stops when the panel closes or the tab hides.
@@ -156,7 +163,7 @@ inventing metrics, commercial results or project availability. Sadafuli checkout
 uses WhatsApp; smart glasses hardware and AR remain research directions.
 
 Four original concept artworks share public/images/project-studies.png.
-The fifth project has a vector study and a procedural Three.js model.
+The fifth project has an original generated product render and a procedural Three.js model.
 They are not product inventory photos, app screenshots or shipped hardware.
 
 The website's assistant is distinct from the offline desktop NOVA/ADA project.
@@ -171,27 +178,25 @@ The script uses the same project facts as the website and checks for overflow.
 
 ## Verification
 
-Production build, TypeScript and 47 regression tests pass. Tests cover unchanged
-chat/provider/search behavior, quotas, microphone permissions, interruptions,
-Heart model reuse, cancellation, queued audio completion, retry after worker
-failure, briefing timelines and accurate concept knowledge. Run npm test.
+Production build, TypeScript and 45 regression tests pass. Coverage includes
+unchanged chat/provider/search behavior, quotas, microphone permissions,
+interruption and replay, briefing timelines, speech formatting, preference
+selection and fallback when a saved browser voice is unavailable.
 
-The included voice manifest checks every narration fits its chapter. Production
-HTTP checks cover all five project routes, static assets, PDFs, video removal,
-unknown-route handling, assistant status and cross-origin rejection. The chat
-request, API handler and web-access code match the previous ZIP byte for byte.
+Browser checks use mocked microphone, speech and AI responses to verify that
+Start voice immediately opens recognition without constructing a Heart worker
+or fetching model assets. They cover voice preview, selection, persistence,
+reply rendering, interrupt and closing. Bundled Heart narration is unchanged from the preceding release. The glasses study uses the new render. Actual voice quality and speech
+service latency depend on the user's browser/device; no latency guarantee is made.
+No real Groq request or production credential is used in tests.
 
-Headless Chrome checks pass on desktop and 390 px mobile layouts: all five
-briefings render without page errors or horizontal overflow, play bundled Heart
-audio, pause and navigate chapters. Screenshots were reviewed. Mocked browser
-checks cover live voice loading, microphone turns, reply rendering, interruption,
-model reuse, closing, download failure and the explicit browser fallback.
-
-Actual live-model synthesis could not be verified here: this workspace blocked
-Hugging Face downloads with ERR_NETWORK_ACCESS_DENIED. The live worker follows
-the official Kokoro API but requires a deployed-browser check with those hosts
-reachable. Bundled briefing narration does not have that dependency.
-
-No real Groq requests or production credentials are used in verification.
 The ZIP excludes node_modules, .next, .git, .vercel, local environment files,
 credentials and caches. This source update is not an already deployed website.
+
+Lens browser checks cover the real three-second interval while hovered and focused,
+click-to-resume, resetting the timer on repeated selection, last-to-first wrapping,
+explicit Pause, reduced motion, image loading and desktop/mobile layout.
+
+Opening/layout checks cover skip, automatic dismissal, once-per-tab behavior,
+reduced motion, all project titles without scrolling at 1366x650, 1366x768,
+1536x864 and 1920x1080, and title-first mobile layout at 390x844.

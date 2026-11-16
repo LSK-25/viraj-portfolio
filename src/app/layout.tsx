@@ -8,6 +8,7 @@ import "./case-studies.css";
 import "./dossier.css";
 import "./interactions.css";
 import "./reconstructions.css";
+import "./opening.css";
 import { NeonTubeCursor } from "@/components/NeonTubeCursor";
 
 const inter = localFont({

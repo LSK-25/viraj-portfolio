@@ -2,32 +2,37 @@
 
 import Link from 'next/link';
 import { useEffect, useRef, useState, type PointerEvent, type KeyboardEvent } from 'react';
-import { motion, useInView, useMotionValue, useReducedMotion, useSpring } from 'motion/react';
+import { motion, useInView, useMotionValue, useSpring } from 'motion/react';
 import { projects } from '@/data/site';
 import { ProjectSculpture } from '@/components/spatial/ProjectSculpture';
 import { ArrowIcon } from '@/components/ui/Icons';
 
-const ROTATION_INTERVAL = 5000;
+const ROTATION_INTERVAL = 3000;
 const names = ['NOVA', 'B&B', 'Sadafuli', 'Sentinel', 'Glasses'];
 
 export function ProjectLens() {
   const [active, setActive] = useState(4);
-  const reduced = useReducedMotion();
+  const [reduced, setReduced] = useState<boolean | null>(null);
   const container = useRef<HTMLDivElement>(null);
   const inView = useInView(container, { amount: .25 });
   const [automatic, setAutomatic] = useState(true);
-  const [hovered, setHovered] = useState(false);
-  const [focused, setFocused] = useState(false);
   const [visible, setVisible] = useState(false);
   const [dialStep, setDialStep] = useState(4);
   const [selectionPass, setSelectionPass] = useState(0);
-  const running = automatic && reduced === false && inView && visible && !hovered && !focused;
+  const [announcement, setAnnouncement] = useState('');
+  const running = automatic && reduced === false && inView && visible;
 
   useEffect(() => {
+    const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const syncMotion = () => setReduced(preference.matches);
+    syncMotion();
+    preference.addEventListener('change', syncMotion);
     const sync = () => setVisible(!document.hidden);
     sync();
     document.addEventListener('visibilitychange', sync);
-    return () => document.removeEventListener('visibilitychange', sync);
+    const introFinished = () => setSelectionPass(pass => pass + 1);
+    window.addEventListener('portfolio:intro-finished', introFinished);
+    return () => { document.removeEventListener('visibilitychange', sync); preference.removeEventListener('change', syncMotion); window.removeEventListener('portfolio:intro-finished', introFinished); };
   }, []);
 
   useEffect(() => {
@@ -51,6 +56,8 @@ export function ProjectLens() {
     setDialStep(step => step + (forward > projects.length / 2 ? forward - projects.length : forward));
     setActive(next);
     setSelectionPass(pass => pass + 1);
+    setAutomatic(true);
+    setAnnouncement(`Selected project: ${projects[next].title}. ${projects[next].status}.`);
     if (focus) tabs.current[next]?.focus();
   }
   function keyboard(event: KeyboardEvent<HTMLButtonElement>, index: number) {
@@ -73,11 +80,7 @@ export function ProjectLens() {
   }
   function reset() { tiltX.set(0); tiltY.set(0); }
 
-  return <div ref={container} className="lens-selector"
-    onPointerEnter={event => { if (event.pointerType === 'mouse') setHovered(true); }}
-    onPointerLeave={() => setHovered(false)} onPointerCancel={() => setHovered(false)}
-    onFocusCapture={event => setFocused(event.target.matches(':focus-visible'))}
-    onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false); }}>
+  return <div ref={container} className="lens-selector">
     <div className="lens-overline"><span>Interactive archive</span><span>{project.number} / 05</span></div>
     <div className="lens-instrument" onPointerMove={move} onPointerLeave={reset} onPointerCancel={reset}>
       <div className="lens-coordinate" aria-hidden="true"><i /><i /><i /><i /></div>
@@ -102,8 +105,8 @@ export function ProjectLens() {
       <div className="lens-project-copy"><span>{item.status}</span><h2>{item.title}</h2><p>{item.subtitle}</p></div>
       <Link className="lens-project-link" href={`/projects/${item.id}`} aria-label={`Explore ${item.title}`}><ArrowIcon width={23} /></Link>
     </div>)}
-    <span className="sr-only" role="status" aria-live={running ? "off" : "polite"}>Selected project: {project.title}. {project.status}.</span>
-    <div className="lens-hint"><span>{reduced ? 'Manual / reduced motion' : !automatic ? 'Auto rotation paused' : hovered || focused ? 'Paused while exploring' : 'Auto rotation / every 5s'}</span><div>
+    <span className="sr-only" role="status" aria-live="polite">{announcement}</span>
+    <div className="lens-hint"><span>{reduced ? 'Manual / reduced motion' : !automatic ? 'Auto rotation paused' : 'Auto rotation / every 3s'}</span><div>
       <button type="button" className="lens-auto-toggle" disabled={Boolean(reduced)} aria-pressed={automatic && !reduced} aria-label={automatic ? 'Pause automatic project rotation' : 'Resume automatic project rotation'} onClick={() => setAutomatic(value => !value)}>{automatic && !reduced ? 'Pause' : 'Resume'}</button><button type="button" onClick={() => select(active - 1)} aria-label="Previous project">&#8592;</button><button type="button" onClick={() => select(active + 1)} aria-label="Next project">&#8594;</button></div></div>
   </div>;
 }

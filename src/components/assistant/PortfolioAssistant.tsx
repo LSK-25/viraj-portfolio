@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { resources } from '@/data/site';
 import { HeartbeatSound } from './HeartbeatSound';
+import { BrowserVoiceSettings } from './BrowserVoiceSettings';
 import { approvedLinks, type LinkCard } from '@/lib/portfolio-knowledge';
-import { BrowserVoice, browserVoiceSupported, type VoicePhase, type VoiceRenderer } from '@/lib/browser-voice';
+import { BrowserVoice, browserVoiceSupported, type VoicePhase } from '@/lib/browser-voice';
 import { AssistantRequestError, requestAnswer } from '@/lib/assistant-client';
 import { needsWebSearch, publicSourceUrl, type WebLookup } from '@/lib/web-access';
 import { ArrowIcon, MicIcon } from '@/components/ui/Icons';
@@ -30,14 +31,14 @@ function WebSources({ lookup }: { lookup: WebLookup }) {
 export function PortfolioAssistant() {
   const dialog = useRef<HTMLDialogElement>(null), scrollArea = useRef<HTMLDivElement>(null), input = useRef<HTMLTextAreaElement>(null);
   const voice = useRef<BrowserVoice | null>(null), chatAbort = useRef<AbortController | null>(null), statusAbort = useRef<AbortController | null>(null);
-  const voicePreview = useRef<HTMLAudioElement>(null);
   const [open, setOpen] = useState(false), [available, setAvailable] = useState<boolean | null>(null), [messages, setMessages] = useState<Message[]>([]), [draft, setDraft] = useState('');
   const [phase, setPhase] = useState<VoicePhase>('idle'), [level, setLevel] = useState(0), [muted, setMuted] = useState(false), [busy, setBusy] = useState(false), [error, setError] = useState('');
   const [soundBlocked, setSoundBlocked] = useState(false), [voiceLinks, setVoiceLinks] = useState<LinkCard[]>([]), [voiceSupported, setVoiceSupported] = useState<boolean | null>(null);
   const [expanded, setExpanded] = useState(false), [retryUntil, setRetryUntil] = useState(0), [clock, setClock] = useState(0);
   const [failedQuestion, setFailedQuestion] = useState('');
-  const [voiceRenderer, setVoiceRenderer] = useState<VoiceRenderer>('heart');
-  const [voiceNotice, setVoiceNotice] = useState('Heart · the voice from ADA');
+  const [voiceURI, setVoiceURI] = useState('');
+  const cancelVoicePreview = useRef<(() => void) | null>(null);
+  const [voiceNotice, setVoiceNotice] = useState('Live voice · ready without a model download');
   const connected = phase !== 'idle';
   const remaining = Math.max(0, Math.ceil((retryUntil - clock) / 1000));
   const searching = (busy || phase === 'thinking') && needsWebSearch(messages.map(message => ({ role: message.role, content: message.text })));
@@ -88,7 +89,8 @@ export function PortfolioAssistant() {
   }
   function startVoice() {
     if (voice.current || connected || busy || available === false || voiceSupported !== true || remaining > 0) return;
-    voicePreview.current?.pause();
+    cancelVoicePreview.current?.(); // Clear preview timers before listening.
+    window.speechSynthesis.cancel();
     setError(''); setMuted(false); setVoiceLinks([]); setSoundBlocked(false); setFailedQuestion('');
     const session = new BrowserVoice({
       phase: value => { setPhase(value); if (value === 'idle' && voice.current === session) voice.current = null; },
@@ -99,7 +101,7 @@ export function PortfolioAssistant() {
         const existing = current.find(message => message.id === id);
         return existing ? current.map(message => message.id === id ? { ...message, text: append ? message.text + text : text } : message) : [...current, { id, role, text }];
       }),
-    }, messages.map(message => ({ role: message.role, content: message.text })), false, voiceRenderer);
+    }, messages.map(message => ({ role: message.role, content: message.text })), false, voiceURI);
     voice.current = session; session.start();
   }
   function newConversation() {
@@ -123,10 +125,8 @@ export function PortfolioAssistant() {
         </div>
         <p className="heart-status" role="status">{voiceNotice}</p>
         <details className="assistant-sound-options"><summary>Sound &amp; voice options<span aria-hidden="true">+</span></summary>
-          <label className="voice-choice">Reply voice<select value={voiceRenderer} disabled={connected} onChange={event => { const value = event.target.value as VoiceRenderer; setVoiceRenderer(value); setVoiceNotice(value === 'heart' ? 'Heart · the voice from ADA' : 'Browser voice selected'); }}><option value="heart">Heart · ADA</option><option value="browser">Browser voice · fallback</option></select></label>
-          <small>Heart runs on your device. First use downloads the speech model; later visits can reuse the browser cache. Speed depends on your device. Text replies are unchanged.</small>
-          {open && <div className="heart-preview"><span>Hear Heart</span><audio ref={voicePreview} controls preload="none" src="/audio/heart/preview.wav" aria-label="Heart voice preview" onPlay={() => { voice.current?.stop(); voice.current = null; }} /></div>}
-          {open && <HeartbeatSound quiet={connected || busy} />}<small>{voiceSupported === false ? 'Voice is unavailable in this browser. Text chat still works. ' : ''}Browser speech may use an online recognition service. Transcripts go to Groq. Heart speaks English. Use Interrupt &amp; speak to take your turn.</small></details>
+          {open && <BrowserVoiceSettings selected={voiceURI} onSelect={setVoiceURI} active={connected} cancelPreviewRef={cancelVoicePreview} />}
+          {open && <HeartbeatSound quiet={connected || busy} />}<small>{voiceSupported === false ? 'Voice is unavailable in this browser. Text chat still works. ' : ''}Browser speech may use an online recognition service. Transcripts go to Groq. Use Interrupt &amp; speak to take your turn.</small></details>
         <div className="assistant-conversation" ref={scrollArea} role="log" aria-live="polite" aria-label="Conversation">
           {available === false && <p className="assistant-notice" role="status">NOVA is temporarily offline. CV and project links are still available.</p>}
           {!messages.length && <div className="assistant-welcome"><span className="eyebrow">Room for a good conversation</span><h3>Curiosity looks<br /><em>good on you.</em></h3><p>Explore my work, talk through an idea, or catch up on what&apos;s happening.</p><div className="suggestions">{['Walk me through your projects', 'Give me a brief news roundup', 'Show me your CV and LinkedIn'].map(prompt => <button type="button" key={prompt} onClick={() => { setDraft(prompt); input.current?.focus(); }}>{prompt}<ArrowIcon width={13} /></button>)}</div></div>}
